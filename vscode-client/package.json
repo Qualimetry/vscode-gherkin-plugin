@@ -1,0 +1,79 @@
+{
+  "name": "gherkin-analyzer",
+  "displayName": "Gherkin Analyzer",
+  "description": "Real-time static analysis for Cucumber Gherkin .feature files — structure, design, style, and correctness rules powered by the Qualimetry analysis engine.",
+  "version": "1.2.0",
+  "publisher": "qualimetry",
+  "license": "Apache-2.0",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:gherkin"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "gherkin",
+        "aliases": [
+          "Gherkin",
+          "Cucumber"
+        ],
+        "extensions": [
+          ".feature"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "gherkin",
+        "scopeName": "source.gherkin",
+        "path": "./syntaxes/gherkin.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Gherkin Analyzer",
+      "properties": {
+        "gherkinAnalyzer.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable the Gherkin Analyzer."
+        },
+        "gherkinAnalyzer.java.home": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a Java 17+ installation. If empty, uses JAVA_HOME or PATH."
+        },
+        "gherkinAnalyzer.rules": {
+          "type": "object",
+          "default": {},
+          "description": "Per-rule configuration. Keys are rule IDs; values are objects with 'enabled' (boolean) and optional property overrides."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "bundle": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap --minify",
+    "vscode:prepublish": "npm run bundle"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.3.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.27.3",
+    "typescript": "^5.3.0"
+  }
+}
