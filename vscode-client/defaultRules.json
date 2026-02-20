@@ -1,0 +1,351 @@
+{
+  "feature-file-required": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "feature-name-required": {
+    "enabled": true,
+    "severity": "critical"
+  },
+  "feature-description-recommended": {
+    "enabled": false,
+    "severity": "info"
+  },
+  "scenario-required": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "scenario-name-required": {
+    "enabled": true,
+    "severity": "critical"
+  },
+  "step-required": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "examples-minimum-rows": {
+    "enabled": true,
+    "severity": "critical"
+  },
+  "examples-column-coverage": {
+    "enabled": true,
+    "severity": "critical"
+  },
+  "scenario-count-limit": {
+    "enabled": true,
+    "severity": "major",
+    "maxScenarios": "12"
+  },
+  "step-count-limit": {
+    "enabled": true,
+    "severity": "major",
+    "maxSteps": "12"
+  },
+  "background-given-only": {
+    "enabled": true,
+    "severity": "critical"
+  },
+  "shared-given-to-background": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "step-order-given-when-then": {
+    "enabled": true,
+    "severity": "critical"
+  },
+  "single-when-per-scenario": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "when-then-required": {
+    "enabled": true,
+    "severity": "critical"
+  },
+  "unique-feature-name": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "unique-scenario-name": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "no-duplicate-steps": {
+    "enabled": true,
+    "severity": "critical"
+  },
+  "use-scenario-outline-for-examples": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "business-language-only": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "consistent-feature-language": {
+    "enabled": false,
+    "severity": "major"
+  },
+  "consistent-indentation": {
+    "enabled": true,
+    "severity": "minor",
+    "indentation": "2"
+  },
+  "no-tab-characters": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "no-trailing-whitespace": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "newline-at-end-of-file": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "no-byte-order-mark": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "consistent-line-endings": {
+    "enabled": false,
+    "severity": "minor",
+    "lineEnding": "LF"
+  },
+  "file-name-convention": {
+    "enabled": true,
+    "severity": "minor",
+    "pattern": "^[a-z][-A-Za-z0-9]*\\.feature$"
+  },
+  "comment-format": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "prefer-and-but-keywords": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "no-star-step-prefix": {
+    "enabled": false,
+    "severity": "minor"
+  },
+  "examples-separator-line": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "step-sentence-max-length": {
+    "enabled": true,
+    "severity": "major",
+    "maxLength": "100"
+  },
+  "tag-name-pattern": {
+    "enabled": true,
+    "severity": "minor",
+    "pattern": "^[a-z][-a-z0-9]*$"
+  },
+  "tag-permitted-values": {
+    "enabled": false,
+    "severity": "minor",
+    "pattern": ".*"
+  },
+  "tag-placement": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "no-redundant-tags": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "no-examples-tags": {
+    "enabled": false,
+    "severity": "minor"
+  },
+  "no-unused-variables": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "given-step-pattern": {
+    "enabled": false,
+    "severity": "minor",
+    "pattern": ".*"
+  },
+  "when-step-pattern": {
+    "enabled": false,
+    "severity": "minor",
+    "pattern": ".*"
+  },
+  "then-step-pattern": {
+    "enabled": false,
+    "severity": "minor",
+    "pattern": ".*"
+  },
+  "no-unknown-step-type": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "todo-comment": {
+    "enabled": true,
+    "severity": "info"
+  },
+  "fixme-comment": {
+    "enabled": true,
+    "severity": "info"
+  },
+  "comment-pattern-match": {
+    "enabled": false,
+    "severity": "major"
+  },
+  "parse-error": {
+    "enabled": true,
+    "severity": "critical"
+  },
+  "rule-name-required": {
+    "enabled": true,
+    "severity": "critical"
+  },
+  "rule-scenario-required": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "unique-rule-name": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "rule-description-recommended": {
+    "enabled": false,
+    "severity": "info"
+  },
+  "outline-placeholder-required": {
+    "enabled": false,
+    "severity": "major"
+  },
+  "scenario-outline-requires-examples": {
+    "enabled": true,
+    "severity": "major"
+  },
+  "background-needs-multiple-scenarios": {
+    "enabled": false,
+    "severity": "minor"
+  },
+  "blank-line-before-scenario": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "rule-scenario-count-limit": {
+    "enabled": true,
+    "severity": "major",
+    "maxScenarios": "10"
+  },
+  "feature-rule-count-limit": {
+    "enabled": true,
+    "severity": "major",
+    "maxRules": "8"
+  },
+  "no-redundant-rule-tags": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "rule-tag-placement": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "examples-name-when-multiple": {
+    "enabled": false,
+    "severity": "minor"
+  },
+  "consistent-scenario-keyword": {
+    "enabled": false,
+    "severity": "minor"
+  },
+  "no-duplicate-tags": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "no-multiple-empty-lines": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "required-tags": {
+    "enabled": false,
+    "severity": "major",
+    "pattern": ".*"
+  },
+  "no-restricted-tags": {
+    "enabled": false,
+    "severity": "major",
+    "restrictedTags": "wip,debug,ignore,manual"
+  },
+  "name-max-length": {
+    "enabled": false,
+    "severity": "minor",
+    "maxLength": "120"
+  },
+  "one-space-between-tags": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "no-partially-commented-tag-lines": {
+    "enabled": true,
+    "severity": "minor"
+  },
+  "outline-single-example-row": {
+    "enabled": false,
+    "severity": "minor",
+    "maxDataRows": "1"
+  },
+  "no-restricted-patterns": {
+    "enabled": false,
+    "severity": "major"
+  },
+  "max-tags-per-element": {
+    "enabled": false,
+    "severity": "minor",
+    "maxTags": "8"
+  },
+  "feature-file-max-lines": {
+    "enabled": false,
+    "severity": "minor",
+    "maxLines": "300"
+  },
+  "data-table-max-columns": {
+    "enabled": false,
+    "severity": "minor",
+    "maxColumns": "10"
+  },
+  "unique-examples-headers": {
+    "enabled": true,
+    "severity": "critical"
+  },
+  "no-empty-examples-cells": {
+    "enabled": false,
+    "severity": "major"
+  },
+  "no-duplicate-scenario-bodies": {
+    "enabled": false,
+    "severity": "major"
+  },
+  "no-conflicting-tags": {
+    "enabled": false,
+    "severity": "major"
+  },
+  "no-commented-out-steps": {
+    "enabled": false,
+    "severity": "minor"
+  },
+  "background-step-count-limit": {
+    "enabled": true,
+    "severity": "major",
+    "maxSteps": "5"
+  },
+  "feature-name-matches-filename": {
+    "enabled": false,
+    "severity": "minor"
+  },
+  "scenario-description-recommended": {
+    "enabled": false,
+    "severity": "info"
+  },
+  "no-empty-doc-strings": {
+    "enabled": true,
+    "severity": "minor"
+  }
+}
