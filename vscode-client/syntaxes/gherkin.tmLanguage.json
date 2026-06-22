@@ -1,0 +1,71 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "scopeName": "source.gherkin",
+  "fileTypes": ["feature"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#tags" },
+    { "include": "#block-keywords" },
+    { "include": "#step-keywords" },
+    { "include": "#doc-strings" },
+    { "include": "#table" },
+    { "include": "#strings" },
+    { "include": "#placeholders" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comments": {
+      "name": "comment.line.number-sign.gherkin",
+      "match": "^\\s*#.*$"
+    },
+    "tags": {
+      "name": "entity.name.tag.gherkin",
+      "match": "@[\\w-]+"
+    },
+    "block-keywords": {
+      "name": "keyword.control.gherkin",
+      "match": "^\\s*(Feature|Scenario Outline|Scenario Template|Scenario|Background|Rule|Examples|Scenarios)\\s*:"
+    },
+    "step-keywords": {
+      "name": "keyword.other.step.gherkin",
+      "match": "^\\s*(Given|When|Then|And|But|\\*)\\s+"
+    },
+    "strings": {
+      "name": "string.quoted.double.gherkin",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        { "include": "#placeholders" },
+        { "include": "#numbers" }
+      ]
+    },
+    "placeholders": {
+      "name": "variable.parameter.gherkin",
+      "match": "<[^<>]+>"
+    },
+    "doc-strings": {
+      "patterns": [
+        {
+          "name": "string.unquoted.block.gherkin",
+          "begin": "^\\s*\"\"\"",
+          "end": "\"\"\"",
+          "contentName": "string.unquoted.block.gherkin"
+        },
+        {
+          "name": "string.unquoted.block.gherkin",
+          "begin": "^\\s*```",
+          "end": "```",
+          "contentName": "string.unquoted.block.gherkin"
+        }
+      ]
+    },
+    "table": {
+      "name": "keyword.operator.table.gherkin",
+      "match": "\\|"
+    },
+    "numbers": {
+      "name": "constant.numeric.gherkin",
+      "match": "\\b\\d+\\.?\\d*\\b"
+    }
+  }
+}
