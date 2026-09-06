@@ -1,0 +1,10 @@
+<h2>Compliant Solution</h2>
+<p>File: <code>payment-refund.feature</code></p>
+<pre>
+Feature: Payment refund processing
+
+  Scenario: Refund a completed payment
+    Given a payment has been completed
+    When a refund is requested
+    Then the refund is processed
+</pre>

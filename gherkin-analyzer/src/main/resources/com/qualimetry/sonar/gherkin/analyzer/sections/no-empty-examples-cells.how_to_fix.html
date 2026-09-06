@@ -1,0 +1,15 @@
+<h2>Compliant Solution</h2>
+<p>Populate all data cells with meaningful values:</p>
+<pre>
+Feature: Product search
+
+  Scenario Outline: Search for products
+    Given the user is on the search page
+    When the user searches for "&lt;product&gt;"
+    Then "&lt;count&gt;" results are displayed
+
+    Examples:
+      | product  | count |
+      | laptop   | 15    |
+      | keyboard | 8     |
+</pre>

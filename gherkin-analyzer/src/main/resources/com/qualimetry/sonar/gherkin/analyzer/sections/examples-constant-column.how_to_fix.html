@@ -1,0 +1,15 @@
+<h2>Compliant Solution</h2>
+<p>Inline the constant value into the step and remove the column:</p>
+<pre>
+Feature: Discount calculation
+
+  Scenario Outline: Apply discount
+    Given a customer of type "gold"
+    When an order of &lt;amount&gt; is placed
+    Then the discount is &lt;discount&gt;
+
+    Examples:
+      | amount | discount |
+      | 100    | 10       |
+      | 200    | 20       |
+</pre>

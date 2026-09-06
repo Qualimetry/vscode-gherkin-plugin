@@ -1,0 +1,22 @@
+<p>
+  Each scenario should contain exactly one <code>When</code> step. A scenario
+  should test a single action or event, and multiple <code>When</code> steps
+  indicate that the scenario is testing multiple behaviours. Scenarios with
+  multiple <code>When</code> steps are harder to understand, maintain, and
+  debug when they fail, as it becomes unclear which action caused the failure.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<pre>
+Feature: User profile management
+
+  Scenario: Update profile and change password    &lt;!-- Noncompliant --&gt;
+    Given the user is logged in
+    And the user profile page is displayed
+    When the user updates their email address
+    And the user saves the changes
+    When the user changes their password           &lt;!-- Noncompliant --&gt;
+    And the user confirms the new password
+    Then the profile is updated successfully
+    And the password change is confirmed
+</pre>

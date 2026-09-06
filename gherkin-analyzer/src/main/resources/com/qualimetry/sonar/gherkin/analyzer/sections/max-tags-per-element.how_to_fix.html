@@ -1,0 +1,24 @@
+<h2>Compliant Solution</h2>
+<pre>
+Feature: User authentication
+
+@smoke @regression @ui
+Scenario: User logs in
+  Given a registered user
+  When the user logs in
+  Then the dashboard is displayed
+</pre>
+
+<h2>Configuration</h2>
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>Description</th>
+    <th>Default</th>
+  </tr>
+  <tr>
+    <td><code>maxTags</code></td>
+    <td>Maximum number of tags allowed per element (Feature, Rule, Scenario, or Examples).</td>
+    <td><code>8</code></td>
+  </tr>
+</table>

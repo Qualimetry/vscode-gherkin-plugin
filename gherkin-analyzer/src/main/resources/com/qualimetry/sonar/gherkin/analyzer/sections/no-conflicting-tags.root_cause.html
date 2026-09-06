@@ -1,0 +1,24 @@
+<p>
+  Tags representing mutually exclusive states must not appear together on
+  the same element. For example, <code>@wip</code> and
+  <code>@release-ready</code>, or <code>@manual</code> and
+  <code>@automated</code>, are contradictory classifications that indicate
+  an inconsistency in the test metadata.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<p>With <code>conflictPairs</code> set to <code>wip+release-ready</code>:</p>
+<pre>
+Feature: Feature development
+
+  @wip @release-ready                       &lt;!-- Noncompliant --&gt;
+  Scenario: Work in progress feature
+    Given a new feature is being developed
+    When the feature is partially implemented
+    Then the tests should indicate incomplete work
+</pre>
+<p>
+  The <code>@wip</code> tag indicates the feature is in development, while
+  <code>@release-ready</code> indicates it is ready for release. Both
+  cannot be true simultaneously.
+</p>

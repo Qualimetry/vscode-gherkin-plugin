@@ -1,0 +1,22 @@
+<h2>Compliant Solution</h2>
+<p>Split into focused scenarios:</p>
+<pre>
+Feature: Loan application
+
+  Scenario: Submit loan application
+    Given the applicant has a verified identity
+    And the applicant has a credit score above 700
+    When the applicant submits a loan application for $50000 over 5 years
+    Then the application is submitted for review
+    And the applicant receives a confirmation number
+</pre>
+
+<h2>Configuration</h2>
+<p>
+  The <code>maxSteps</code> parameter controls the maximum number of
+  steps allowed per Scenario. The default value is <strong>12</strong>.
+</p>
+<table>
+  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>
+  <tr><td><code>maxSteps</code></td><td>int</td><td>12</td></tr>
+</table>

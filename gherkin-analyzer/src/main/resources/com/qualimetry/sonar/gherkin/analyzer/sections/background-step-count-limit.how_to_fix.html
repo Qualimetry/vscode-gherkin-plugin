@@ -1,0 +1,24 @@
+<h2>Compliant Solution</h2>
+<p>Reduce the Background to essential shared setup:</p>
+<pre>
+Feature: Complex setup
+
+  Background:
+    Given a registered user with full profile
+    And the user is logged in
+
+  Scenario: View settings
+    When the user navigates to settings
+    Then the settings page is displayed
+</pre>
+
+<h2>Configuration</h2>
+<p>
+  The <code>maxSteps</code> parameter controls the maximum number of
+  steps allowed per Background. The default value is <strong>5</strong>.
+  Teams with complex shared setup can raise the limit.
+</p>
+<table>
+  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>
+  <tr><td><code>maxSteps</code></td><td>int</td><td>5</td></tr>
+</table>

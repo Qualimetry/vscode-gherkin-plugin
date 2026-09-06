@@ -1,0 +1,14 @@
+<h2>Compliant Solution</h2>
+<p>Add at least one Scenario to the Feature:</p>
+<pre>
+Feature: Payment processing
+  The payment system handles credit card and bank transfer payments.
+
+  Background:
+    Given the merchant account is active
+
+  Scenario: Process a credit card payment
+    When a customer submits a credit card payment of $100
+    Then the payment is authorized
+    And the merchant receives a confirmation
+</pre>

@@ -1,0 +1,30 @@
+<h2>Compliant Solution</h2>
+<pre>
+Feature: Payment processing
+
+  @smoke
+  Scenario: Process credit card payment
+    Given a valid credit card
+    When the payment is submitted
+    Then the payment is approved
+
+  @smoke
+  Scenario: Process refund
+    Given a completed payment
+    When a refund is requested
+    Then the refund is processed
+</pre>
+
+<h2>Configuration</h2>
+<table>
+  <thead>
+    <tr><th>Parameter</th><th>Description</th><th>Default</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>restrictedTags</code></td>
+      <td>Comma-separated list of restricted tag names (without leading <code>@</code>).</td>
+      <td><code>wip,debug,ignore,manual</code></td>
+    </tr>
+  </tbody>
+</table>

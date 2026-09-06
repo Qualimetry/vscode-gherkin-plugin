@@ -1,0 +1,16 @@
+<p>
+  Every <code>.feature</code> file must contain a <code>Feature</code>
+  definition. The <code>Feature</code> keyword is the top-level container
+  in a Gherkin document and provides the context for all scenarios within
+  the file. A file without this keyword serves no purpose in a Cucumber
+  test suite and should either have a Feature added or be removed entirely.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<pre>
+# This file has no Feature keyword
+Scenario: Customer places an order
+  Given the customer has items in their shopping cart
+  When the customer proceeds to checkout
+  Then the order confirmation page is displayed
+</pre>

@@ -1,0 +1,11 @@
+<h2>Compliant Solution</h2>
+<p>Add a <code>Feature</code> definition at the top of the file:</p>
+<pre>
+Feature: Order placement
+  Customers should be able to place orders through the checkout process.
+
+  Scenario: Customer places an order
+    Given the customer has items in their shopping cart
+    When the customer proceeds to checkout
+    Then the order confirmation page is displayed
+</pre>

@@ -1,0 +1,22 @@
+<p>
+  Flags step text, scenario names, feature names, rule names, and descriptions
+  that match a configurable regular expression. This is a template rule - when
+  the pattern is empty (the default), the rule does nothing.
+</p>
+<p>
+  More general than <code>business-language-only</code>, this rule lets teams ban
+  project-specific anti-patterns such as hardcoded URLs, environment names,
+  SQL fragments, implementation details, or any other text that should not appear
+  in Gherkin specifications.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<p>With <code>pattern</code> set to <code>https?://|SELECT\s|INSERT\s</code>:</p>
+<pre>
+Feature: User data retrieval
+
+  Scenario: Fetch user data  <!-- Noncompliant - step contains URL -->
+    Given the API at "https://api.example.com/users"
+    When the client sends a GET request
+    Then the response status is 200
+</pre>

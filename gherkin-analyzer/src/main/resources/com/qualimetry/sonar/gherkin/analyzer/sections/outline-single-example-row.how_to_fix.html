@@ -1,0 +1,34 @@
+<h2>Compliant Solution</h2>
+<pre>
+Scenario: User logs in
+  Given the user navigates to the login page
+  When the user enters "admin" and "secret"
+  Then the user should see the dashboard
+</pre>
+<p>Or add more data rows to justify the Outline:</p>
+<pre>
+Scenario Outline: User logs in
+  Given the user navigates to the login page
+  When the user enters "&lt;username&gt;" and "&lt;password&gt;"
+  Then the user should see the dashboard
+
+  Examples:
+    | username | password  |
+    | admin    | secret    |
+    | editor   | editPass  |
+    | viewer   | viewPass  |
+</pre>
+
+<h2>Configuration</h2>
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>Description</th>
+    <th>Default</th>
+  </tr>
+  <tr>
+    <td><code>maxDataRows</code></td>
+    <td>Maximum data rows per Examples section that triggers the issue (all Examples must be at or below this threshold).</td>
+    <td><code>1</code></td>
+  </tr>
+</table>

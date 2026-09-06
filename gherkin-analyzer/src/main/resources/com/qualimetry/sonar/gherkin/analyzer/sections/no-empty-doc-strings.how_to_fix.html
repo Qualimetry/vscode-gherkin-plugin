@@ -1,0 +1,25 @@
+<h2>Compliant Solution</h2>
+<p>Either fill in the doc string with content:</p>
+<pre>
+Feature: API testing
+
+  Scenario: Submit a JSON payload
+    Given the API endpoint is available
+    When the user submits the following payload:
+      """json
+      {
+        "name": "Alice",
+        "email": "alice@example.com"
+      }
+      """
+    Then the response status is 200
+</pre>
+<p>Or remove the doc string entirely if it is not needed:</p>
+<pre>
+Feature: API testing
+
+  Scenario: Submit an empty payload
+    Given the API endpoint is available
+    When the user submits an empty payload
+    Then the response status is 400
+</pre>

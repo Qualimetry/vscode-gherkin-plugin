@@ -1,0 +1,22 @@
+<p>
+  <code>Rule</code> blocks should not exceed a configurable number of scenarios.
+  Too many scenarios under a single <code>Rule</code> suggest the business rule
+  is too broad and should be decomposed into smaller, more focused rules.
+  The default limit is <strong>10</strong> scenarios per <code>Rule</code> block.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<pre>
+Feature: Payment processing
+
+  Rule: Credit card payments
+    # This Rule has too many scenarios (11 &gt; 10)
+
+    Scenario: Scenario 1           <!-- Noncompliant -->
+      Given ...
+    Scenario: Scenario 2
+      Given ...
+    # ... 9 more scenarios ...
+    Scenario: Scenario 11
+      Given ...
+</pre>

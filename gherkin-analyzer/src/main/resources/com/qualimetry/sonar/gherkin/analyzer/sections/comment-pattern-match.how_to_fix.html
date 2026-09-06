@@ -1,0 +1,23 @@
+<h2>Compliant Solution</h2>
+<p>Remove or rephrase the offending comment:</p>
+<pre>
+Feature: Payment processing
+
+  Scenario: Process a refund
+    Given the customer has a completed order
+    When the customer requests a refund
+    Then the refund is processed
+</pre>
+
+<h2>Parameters</h2>
+<table>
+  <thead><tr><th>Name</th><th>Default</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>pattern</code></td>
+      <td><em>(empty)</em></td>
+      <td>Regular expression pattern to match against comment text.
+          Leave empty to disable the rule.</td>
+    </tr>
+  </tbody>
+</table>

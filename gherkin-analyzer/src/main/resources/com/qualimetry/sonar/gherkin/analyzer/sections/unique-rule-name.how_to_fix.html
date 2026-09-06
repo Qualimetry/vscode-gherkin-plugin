@@ -1,0 +1,17 @@
+<h2>Compliant Solution</h2>
+<p>Give each Rule a unique, descriptive name:</p>
+<pre>
+Feature: Order Management
+
+  Rule: Order total validation
+    Scenario: Validate order total
+      Given an order with 3 items
+      When the order total is calculated
+      Then the total should be correct
+
+  Rule: Shipping address validation
+    Scenario: Validate shipping address
+      Given an order with a shipping address
+      When the address is validated
+      Then the address should be accepted
+</pre>

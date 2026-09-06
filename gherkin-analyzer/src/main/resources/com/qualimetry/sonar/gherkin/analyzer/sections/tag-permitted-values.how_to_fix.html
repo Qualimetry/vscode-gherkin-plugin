@@ -1,0 +1,26 @@
+<h2>Compliant Solution</h2>
+<p>Tag names that match the permitted pattern:</p>
+<pre>
+@smoke
+@regression
+@api
+@integration
+</pre>
+
+<h2>Configuration</h2>
+<p>
+  The <code>pattern</code> parameter is a regular expression that tag names
+  must match. The default pattern is <code>.*</code> (allows any tag).
+</p>
+<table>
+  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>
+  <tr>
+    <td><code>pattern</code></td>
+    <td>String (regex)</td>
+    <td><code>.*</code></td>
+  </tr>
+</table>
+<p>
+  Example: Set <code>pattern</code> to <code>smoke|regression|api|integration</code>
+  to only allow these specific tag values.
+</p>

@@ -1,0 +1,15 @@
+<p>
+  Every <code>Feature</code> must contain at least one <code>Scenario</code>
+  or <code>Scenario Outline</code>. A Feature without any scenarios provides
+  no test coverage and serves no purpose in a test suite. Scenarios may be
+  defined directly under the Feature or within <code>Rule</code> sections.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<pre>
+Feature: Payment processing                     &lt;!-- Noncompliant --&gt;
+  The payment system handles credit card and bank transfer payments.
+
+  Background:
+    Given the merchant account is active
+</pre>

@@ -1,0 +1,26 @@
+<h2>Compliant Solution</h2>
+<p>Add a description below the Scenario name:</p>
+<pre>
+Feature: User authentication
+
+  Scenario: Successful login
+    Verifies that a user with valid credentials can successfully
+    log in to the system and is redirected to the dashboard.
+
+    Given the user is on the login page
+    When the user enters valid credentials
+    Then the user is redirected to the dashboard
+
+  Scenario Outline: Login with different roles
+    Tests login behaviour across different user roles to ensure
+    proper access control and dashboard routing.
+
+    Given the user is on the login page
+    When the user logs in as "&lt;role&gt;"
+    Then the user sees the "&lt;dashboard&gt;" dashboard
+
+    Examples:
+      | role  | dashboard |
+      | admin | admin     |
+      | user  | user      |
+</pre>

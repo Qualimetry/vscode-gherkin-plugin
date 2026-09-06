@@ -1,0 +1,150 @@
+{
+  "name": "qualimetry-vscode-gherkin-plugin",
+  "displayName": "Qualimetry Gherkin Analyzer",
+  "publisher": "Qualimetry",
+  "description": "Real-time static analysis for Cucumber Gherkin .feature files - structure, design, style, and correctness rules powered by the Qualimetry analysis engine.",
+  "version": "1.5.0",
+  "license": "Apache-2.0",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:gherkin",
+    "onCommand:gherkin.importRulesFromSonarQube",
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gherkin.importRulesFromSonarQube",
+        "title": "Gherkin: Connect to SonarQube"
+      },
+      {
+        "command": "gherkin.syncServerIssues",
+        "title": "Gherkin: Sync issues from SonarQube"
+      },
+      {
+        "command": "gherkin.showRuleDescription",
+        "title": "Gherkin: Show rule description"
+      }
+    ],
+    "languages": [
+      {
+        "id": "gherkin",
+        "aliases": [
+          "Gherkin",
+          "Cucumber"
+        ],
+        "extensions": [
+          ".feature"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "gherkin",
+        "scopeName": "source.gherkin",
+        "path": "./syntaxes/gherkin.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Gherkin Analyzer",
+      "properties": {
+        "gherkinAnalyzer.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable the Gherkin Analyzer."
+        },
+        "gherkinAnalyzer.java.home": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a Java 17+ installation. If empty, uses JAVA_HOME or PATH."
+        },
+        "gherkinAnalyzer.sonar.autoSyncOnStartup": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically re-import rules from the last-used SonarQube server when the extension starts."
+        },
+        "gherkinAnalyzer.rulesReplaceDefaults": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, only the rules listed in gherkinAnalyzer.rules run (e.g. after Import from SonarQube). When false, listed rules are overrides and unlisted rules use the extension default profile."
+        },
+        "gherkinAnalyzer.rules": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "blocker",
+                  "critical",
+                  "major",
+                  "minor",
+                  "info"
+                ]
+              }
+            },
+            "additionalProperties": true
+          },
+          "description": "Per-rule overrides. Omit or use {} to use the extension default. Add only the rule IDs you want to change (enabled, severity, or rule-specific properties). Unlisted rules use the built-in default unless rulesReplaceDefaults is true."
+        },
+        "gherkinAnalyzer.sonar.projectKey": {
+          "type": "string",
+          "default": "",
+          "description": "SonarQube project this workspace is bound to. Normally set by the Connect to SonarQube command rather than by hand."
+        },
+        "gherkinAnalyzer.sonar.branch": {
+          "type": "string",
+          "default": "",
+          "description": "Branch to read issues from. When empty, the checked-out branch is used if the server knows it, otherwise the project's main branch."
+        },
+        "gherkinAnalyzer.sonar.pathPrefix": {
+          "type": "string",
+          "default": "",
+          "description": "Path from the SonarQube project root to this workspace root. Only needed when the workspace is opened at a subdirectory of the scanned project."
+        },
+        "gherkinAnalyzer.sonar.issueSync": {
+          "type": "boolean",
+          "default": true,
+          "description": "Fetch issues from SonarQube for the bound project."
+        },
+        "gherkinAnalyzer.sonar.hideResolvedIssues": {
+          "type": "boolean",
+          "default": true,
+          "description": "Hide findings that are already marked False Positive or Accepted on SonarQube."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "npm run compile && node --test out/test/",
+    "bundle": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap --minify",
+    "vscode:prepublish": "npm run bundle"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.3.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.27.3",
+    "typescript": "^5.3.0"
+  }
+}

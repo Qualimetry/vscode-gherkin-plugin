@@ -1,0 +1,27 @@
+<h2>Compliant Solution</h2>
+<p>Split long content across steps or a data table:</p>
+<pre>
+Feature: Order processing
+
+  Scenario: Submit an order
+    Given the user has an order
+    When the user submits the order with:
+      | customer reference | ACME-2026-0001 |
+      | priority           | express        |
+      | delivery note      | rear dock      |
+    Then the order is accepted
+</pre>
+
+<h2>Configuration</h2>
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>Description</th>
+    <th>Default</th>
+  </tr>
+  <tr>
+    <td><code>maxLength</code></td>
+    <td>Maximum number of characters allowed in a line.</td>
+    <td><code>120</code></td>
+  </tr>
+</table>

@@ -1,0 +1,15 @@
+<h2>Compliant Solution</h2>
+<p>Reorganize steps to follow Given-When-Then order:</p>
+<pre>
+Feature: Payment processing
+
+  Scenario: Process credit card payment
+    Given the customer has items in the cart
+    And the customer proceeds to checkout
+    And the payment form is displayed
+    And the customer enters valid card details
+    When the customer submits the payment
+    Then the payment is processed successfully
+    And the order confirmation is generated
+    And the customer receives an email receipt
+</pre>

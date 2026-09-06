@@ -1,0 +1,23 @@
+<p>
+  <code>Examples</code> tables in a <code>Scenario Outline</code> must
+  contain a minimum number of data rows beyond the header row
+  (<code>minimumDataRows</code> parameter, default 2). The header row
+  defines the column names; data rows provide the actual values that are
+  substituted into the outline steps. A table with no data rows renders
+  the Scenario Outline useless, and a single data row barely justifies
+  the outline construct.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<pre>
+Feature: Currency conversion
+
+  Scenario Outline: Convert between currencies
+    Given the exchange rate from &lt;source&gt; to &lt;target&gt; is &lt;rate&gt;
+    When the customer converts &lt;amount&gt; &lt;source&gt;
+    Then the result should be &lt;expected&gt; &lt;target&gt;
+
+    Examples:                                   &lt;!-- Noncompliant: only 1 data row --&gt;
+      | source | target | rate | amount | expected |
+      | USD    | EUR    | 0.85 | 100    | 85       |
+</pre>

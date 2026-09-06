@@ -1,0 +1,24 @@
+<p>
+  Steps should use business language that describes what the system does from
+  a user or business perspective, not technical implementation details. Avoid
+  UI-specific terms like "click", "field", "dropdown", or "textbox" as
+  these tie scenarios to specific user interface implementations. Ordinary
+  words such as "page" or "button" are not flagged. Instead,
+  focus on the business action or outcome, making scenarios more maintainable
+  and allowing the underlying implementation to change without updating tests.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<pre>
+Feature: Account registration
+
+  Scenario: Register new customer account
+    Given the user is on the registration page
+    When the user clicks the "Email" field
+    And the user types "customer@example.com" into the email field
+    And the user clicks the "Password" field
+    And the user types "SecurePass123" into the password field
+    And the user clicks the "Submit" button
+    Then the user is redirected to the welcome page
+    And a success message is displayed on the page
+</pre>

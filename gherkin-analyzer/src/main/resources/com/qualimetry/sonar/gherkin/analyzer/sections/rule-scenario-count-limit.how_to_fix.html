@@ -1,0 +1,22 @@
+<h2>Compliant Solution</h2>
+<pre>
+Feature: Payment processing
+
+  Rule: Visa payments
+    Scenario: Process Visa payment
+      Given ...
+    Scenario: Decline expired Visa
+      Given ...
+
+  Rule: Mastercard payments
+    Scenario: Process Mastercard payment
+      Given ...
+    Scenario: Decline expired Mastercard
+      Given ...
+</pre>
+
+<h2>Configuration</h2>
+<p>
+  The <code>maxScenarios</code> parameter sets the maximum allowed scenarios
+  per <code>Rule</code> block. Default value: <strong>10</strong>.
+</p>

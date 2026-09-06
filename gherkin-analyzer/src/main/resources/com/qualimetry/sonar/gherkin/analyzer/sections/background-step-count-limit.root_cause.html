@@ -1,0 +1,27 @@
+<p>
+  Background sections should not exceed a configurable number of steps
+  (default: 5). Every scenario in scope implicitly begins with the
+  Background steps, so a long Background makes scenarios harder to
+  understand, increases the cognitive load on readers and reviewers,
+  and often indicates that setup logic should be consolidated or
+  extracted into helper steps.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<p>With the default limit of 5 steps:</p>
+<pre>
+Feature: Complex setup
+
+  Background:                                &lt;!-- Noncompliant --&gt;
+    Given a registered user
+    And the user is logged in
+    And the user has a verified email
+    And the user has a premium subscription
+    And the user has enabled two-factor authentication
+    And the user has accepted the latest terms
+    And the user is on the home page
+
+  Scenario: View settings
+    When the user navigates to settings
+    Then the settings page is displayed
+</pre>

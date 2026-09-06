@@ -1,0 +1,27 @@
+<p>
+  <code>Scenario Outline</code> (or <code>Scenario Template</code>) is designed to parameterize
+  test execution by substituting <code>&lt;placeholder&gt;</code> variables from the
+  <code>Examples</code> table into step text. A Scenario Outline that never references any
+  placeholder variable runs the same identical steps for every data row, which is almost
+  certainly a mistake - either placeholders were forgotten or a plain <code>Scenario</code>
+  should be used instead.
+</p>
+<p>
+  This rule checks step text, the scenario name, and the scenario description for at least
+  one <code>&lt;variable&gt;</code> reference. If none are found, the rule reports an issue.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<pre>
+Feature: User login
+
+  Scenario Outline: Successful login  <!-- Noncompliant - no placeholders used -->
+    Given a registered user
+    When the user logs in with valid credentials
+    Then the user sees the dashboard
+
+    Examples:
+      | username | password |
+      | alice    | secret1  |
+      | bob      | secret2  |
+</pre>

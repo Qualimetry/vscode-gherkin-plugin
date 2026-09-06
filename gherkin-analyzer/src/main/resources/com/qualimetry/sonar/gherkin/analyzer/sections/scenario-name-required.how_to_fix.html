@@ -1,0 +1,10 @@
+<h2>Compliant Solution</h2>
+<p>Provide a descriptive name that explains the business behaviour:</p>
+<pre>
+Feature: Inventory management
+
+  Scenario: Shipping reduces warehouse stock
+    Given the warehouse has 50 units of product "Widget A"
+    When 10 units are shipped to the retail store
+    Then the warehouse should have 40 units remaining
+</pre>

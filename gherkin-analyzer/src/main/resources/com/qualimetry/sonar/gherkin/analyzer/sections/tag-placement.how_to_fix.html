@@ -1,0 +1,23 @@
+<h2>Compliant Solution</h2>
+<p>Common tags moved to the Feature level:</p>
+<pre>
+@smoke @regression
+Feature: Payment processing
+
+  Scenario: Process credit card payment
+    Given the customer has items in cart
+    When the customer completes checkout
+    Then payment is processed
+
+  Scenario: Process PayPal payment
+    Given the customer has items in cart
+    When the customer selects PayPal
+    Then payment is processed
+</pre>
+
+<p>
+  Note: If a tag appears on most but not all scenarios, it should remain at the
+  scenario level. Only tags that appear on <strong>every</strong> scenario within
+  the Feature should be promoted. Rule-level tag promotion is handled by the
+  companion rule <code>rule-tag-placement</code>.
+</p>

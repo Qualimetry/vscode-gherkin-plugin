@@ -1,0 +1,19 @@
+<h2>Compliant Solution</h2>
+<p>Split into separate scenarios, each with one When step:</p>
+<pre>
+Feature: User profile management
+
+  Scenario: Update profile email
+    Given the user is logged in
+    And the user profile page is displayed
+    When the user updates their email address
+    And the user saves the changes
+    Then the profile is updated successfully
+
+  Scenario: Change password
+    Given the user is logged in
+    And the user profile page is displayed
+    When the user changes their password
+    And the user confirms the new password
+    Then the password change is confirmed
+</pre>

@@ -1,0 +1,16 @@
+<p>
+  Every <code>Rule</code> block must contain at least one <code>Scenario</code>
+  or <code>Example</code>. A <code>Rule</code> block without any scenarios
+  serves no purpose &mdash; it declares a business rule but provides no test
+  coverage to validate it. This is almost always an incomplete implementation
+  or a placeholder that was never filled in.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<pre>
+Feature: Payment Processing
+
+  Rule: Refund policy                             &lt;!-- Noncompliant --&gt;
+    Background:
+      Given the store has a 30-day refund policy
+</pre>

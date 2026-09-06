@@ -1,0 +1,1576 @@
+{
+  "repositoryKey": "qualimetry-gherkin",
+  "sectionOrder": [
+    "root_cause",
+    "assess_the_problem",
+    "how_to_fix",
+    "resources"
+  ],
+  "sectionTitles": {
+    "root_cause": "Why is this an issue?",
+    "assess_the_problem": "Assess the risk",
+    "how_to_fix": "How can I fix it?",
+    "resources": "More info"
+  },
+  "rules": [
+    {
+      "key": "background-given-only",
+      "name": "Background Given Only",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/background-given-only.md",
+      "sections": {
+        "root_cause": "<p>\n  Background sections must only contain <code>Given</code> steps. The Background\n  is designed to establish shared preconditions that apply to all scenarios in\n  a feature. Using <code>When</code> or <code>Then</code> steps in Background\n  violates the Given-When-Then pattern and makes scenarios harder to understand,\n  as Background should only set up the initial state, not perform actions or\n  verify outcomes. <code>And</code>/<code>But</code> steps inherit the type\n  of the preceding keyword, so conjunctions continuing a <code>When</code>\n  or <code>Then</code> are flagged too.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Customer account management\n\n  Background:                                    &lt;!-- Noncompliant --&gt;\n    Given the customer has an active account\n    When the customer logs into the system\n    Then the customer dashboard is displayed\n\n  Scenario: View account balance\n    Given the account balance is $1000\n    When the customer requests the balance\n    Then the balance of $1000 is displayed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Move <code>When</code> and <code>Then</code> steps out of Background:</p>\n<pre>\nFeature: Customer account management\n\n  Background:\n    Given the customer has an active account\n    And the customer is logged into the system\n\n  Scenario: View account balance\n    Given the account balance is $1000\n    When the customer requests the balance\n    Then the balance of $1000 is displayed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>shared-given-to-background</code> &mdash; Common Given steps should be moved to Background</li>\n  <li><code>step-order-given-when-then</code> &mdash; Steps must follow Given/When/Then order</li>\n</ul>"
+      }
+    },
+    {
+      "key": "background-needs-multiple-scenarios",
+      "name": "Background Needs Multiple Scenarios",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "10min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/background-needs-multiple-scenarios.md",
+      "sections": {
+        "root_cause": "<p>\n  A <code>Background</code> section provides common setup steps that run before each scenario\n  in its scope (Feature or Rule). When there is only one scenario in that scope, the\n  <code>Background</code> adds indirection without benefit - the steps should be inlined\n  directly into the single scenario for clarity and maintainability.\n</p>\n<p>\n  This rule checks both Feature-level and Rule-level Backgrounds independently. A Feature-level\n  Background is only flagged when there are no <code>Rule</code> blocks (because the Background\n  may serve scenarios inside Rules). A Rule-level Background is flagged when the Rule contains\n  only one scenario.\n</p>\n<p>\n  This rule does not fire when there are zero scenarios in the scope - that condition is\n  covered by the <code>scenario-required</code> and <code>rule-scenario-required</code> rules.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Order processing\n\n  Background:  <!-- Noncompliant - only one scenario in Feature -->\n    Given a customer with an active account\n\n  Scenario: Place an order\n    When the customer adds an item to the cart\n    Then the order is created\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Order processing\n\n  Scenario: Place an order\n    Given a customer with an active account\n    When the customer adds an item to the cart\n    Then the order is created\n</pre>\n\n<h2>Compliant Solution (multiple scenarios)</h2>\n<pre>\nFeature: Order processing\n\n  Background:\n    Given a customer with an active account\n\n  Scenario: Place an order\n    When the customer adds an item to the cart\n    Then the order is created\n\n  Scenario: Cancel an order\n    Given an existing order\n    When the customer cancels the order\n    Then the order status is cancelled\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>scenario-required</code> - ensures Features have at least one scenario.</li>\n  <li><code>rule-scenario-required</code> - ensures Rules have at least one scenario.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "background-step-count-limit",
+      "name": "Background Step Count Limit",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/background-step-count-limit.md",
+      "sections": {
+        "root_cause": "<p>\n  Background sections should not exceed a configurable number of steps\n  (default: 5). Every scenario in scope implicitly begins with the\n  Background steps, so a long Background makes scenarios harder to\n  understand, increases the cognitive load on readers and reviewers,\n  and often indicates that setup logic should be consolidated or\n  extracted into helper steps.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With the default limit of 5 steps:</p>\n<pre>\nFeature: Complex setup\n\n  Background:                                &lt;!-- Noncompliant --&gt;\n    Given a registered user\n    And the user is logged in\n    And the user has a verified email\n    And the user has a premium subscription\n    And the user has enabled two-factor authentication\n    And the user has accepted the latest terms\n    And the user is on the home page\n\n  Scenario: View settings\n    When the user navigates to settings\n    Then the settings page is displayed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Reduce the Background to essential shared setup:</p>\n<pre>\nFeature: Complex setup\n\n  Background:\n    Given a registered user with full profile\n    And the user is logged in\n\n  Scenario: View settings\n    When the user navigates to settings\n    Then the settings page is displayed\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>maxSteps</code> parameter controls the maximum number of\n  steps allowed per Background. The default value is <strong>5</strong>.\n  Teams with complex shared setup can raise the limit.\n</p>\n<table>\n  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>\n  <tr><td><code>maxSteps</code></td><td>int</td><td>5</td></tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>step-count-limit</code> - limits the number of steps in a single scenario.</li>\n  <li><code>background-given-only</code> - restricts Background to Given steps.</li>\n  <li><code>background-needs-multiple-scenarios</code> - a Background is only worthwhile with several scenarios.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "blank-line-before-scenario",
+      "name": "Blank Line Before Scenario",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/blank-line-before-scenario.md",
+      "sections": {
+        "root_cause": "<p>\n  A blank line should precede each <code>Scenario</code>, <code>Scenario Outline</code>,\n  <code>Scenario Template</code>, or <code>Example</code> keyword for readability. This\n  visual separation makes it easier to scan a feature file and identify where each test\n  scenario begins.\n</p>\n<p>\n  This rule mirrors the <code>examples-separator-line</code> rule, which enforces the same\n  pattern for <code>Examples</code> sections. When a scenario has tags or comment lines\n  directly above it, those lines belong to the scenario block: the blank line must appear\n  before the whole tag/comment block. A comment directly above a scenario is compliant as\n  long as a blank line precedes the comment.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Order processing\n  Scenario: Place an order  <!-- Noncompliant - no blank line before Scenario -->\n    Given a customer with an account\n    When the customer adds an item to the cart\n    Then the order is created\n  Scenario: Cancel an order  <!-- Noncompliant - no blank line before Scenario -->\n    Given an existing order\n    When the customer cancels the order\n    Then the order status is cancelled\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Order processing\n\n  Scenario: Place an order\n    Given a customer with an account\n    When the customer adds an item to the cart\n    Then the order is created\n\n  Scenario: Cancel an order\n    Given an existing order\n    When the customer cancels the order\n    Then the order status is cancelled\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>examples-separator-line</code> - enforces blank lines before Examples sections.</li>\n  <li><code>consistent-indentation</code> - enforces consistent indentation throughout the file.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "business-language-only",
+      "name": "Business Language Only",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/business-language-only.md",
+      "sections": {
+        "root_cause": "<p>\n  Steps should use business language that describes what the system does from\n  a user or business perspective, not technical implementation details. Avoid\n  UI-specific terms like \"click\", \"field\", \"dropdown\", or \"textbox\" as\n  these tie scenarios to specific user interface implementations. Ordinary\n  words such as \"page\" or \"button\" are not flagged. Instead,\n  focus on the business action or outcome, making scenarios more maintainable\n  and allowing the underlying implementation to change without updating tests.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Account registration\n\n  Scenario: Register new customer account\n    Given the user is on the registration page\n    When the user clicks the \"Email\" field\n    And the user types \"customer@example.com\" into the email field\n    And the user clicks the \"Password\" field\n    And the user types \"SecurePass123\" into the password field\n    And the user clicks the \"Submit\" button\n    Then the user is redirected to the welcome page\n    And a success message is displayed on the page\n</pre>",
+        "how_to_fix": "<h2>Suggested alternatives</h2>\n<p>Describe the <em>action</em> or <em>data</em>, not the control type:</p>\n<ul>\n  <li><strong>checkbox</strong> &rarr; the choice or preference: \"opts in to ...\", \"agrees to ...\", \"enables ...\", \"turns on ...\"</li>\n  <li><strong>textbox / field / input</strong> &rarr; the data: \"enters ...\", \"provides ...\", \"sets ... to ...\" (e.g. \"the user provides email ...\")</li>\n  <li><strong>dropdown / select</strong> &rarr; the selection: \"chooses ...\", \"picks ...\", \"sets ... to ...\" (e.g. \"the user chooses country ...\")</li>\n  <li><strong>radio</strong> &rarr; the option chosen: \"chooses ...\", \"selects option ...\"</li>\n  <li><strong>click</strong> &rarr; the action: \"submits ...\", \"confirms ...\", \"opens ...\", \"navigates to ...\"</li>\n  <li><strong>link</strong> &rarr; the destination or action: \"goes to ...\", \"opens ...\", \"navigates to ...\"</li>\n  <li><strong>submit</strong> &rarr; the outcome: \"submits the form\" &rarr; \"submits the registration\" or \"confirms the order\"</li>\n  <li><strong>modal / popup / tab</strong> &rarr; the outcome or place: \"the confirmation appears\", \"switches to ... section\"</li>\n</ul>\n<p>If the control type is essential to your domain (e.g. accessibility specs), you can turn this rule off for that project or use <code>no-restricted-patterns</code> to allow specific terms.</p>\n\n<h2>Compliant Solution</h2>\n<p>Use business language focused on actions and outcomes:</p>\n<pre>\nFeature: Account registration\n\n  Scenario: Register new customer account\n    Given the customer wants to create an account\n    When the customer provides email \"customer@example.com\"\n    And the customer sets password \"SecurePass123\"\n    And the customer submits the registration\n    Then the account is created successfully\n    And the customer receives a welcome notification\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>step-order-given-when-then</code> &mdash; Steps must follow Given/When/Then order</li>\n  <li><code>step-count-limit</code> &mdash; Scenarios should not exceed a maximum number of steps</li>\n</ul>"
+      }
+    },
+    {
+      "key": "comment-format",
+      "name": "Comment Format",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/comment-format.md",
+      "sections": {
+        "root_cause": "<p>\n  Comments in Gherkin files should have a space after the <code>#</code> symbol.\n  This improves readability and follows the widely adopted convention in most\n  programming languages and configuration files. An empty comment consisting\n  of just <code>#</code> is also acceptable.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Delivery scheduling\n\n  #This comment does not have a space after #       &lt;!-- Noncompliant --&gt;\n  Scenario: Schedule a delivery\n    Given the customer has placed an order\n    #Another badly formatted comment                &lt;!-- Noncompliant --&gt;\n    When the customer selects next-day delivery\n    Then the delivery is scheduled for tomorrow\n</pre>\n\n<h2>Notes</h2>\n<p>\n  This rule allows empty comments (just a bare <code>#</code>) which are\n  sometimes used as visual separators. The format <code># comment text</code>\n  is the expected convention.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Delivery scheduling\n\n  # This comment has a space after #\n  Scenario: Schedule a delivery\n    Given the customer has placed an order\n    # A properly formatted comment\n    When the customer selects next-day delivery\n    Then the delivery is scheduled for tomorrow\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>comment-pattern-match</code> - flags comments matching a configured pattern.</li>\n  <li><code>no-commented-out-steps</code> - flags steps that have been commented out rather than removed.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "comment-pattern-match",
+      "name": "Comment Pattern Match",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/comment-pattern-match.md",
+      "sections": {
+        "root_cause": "<p>\n  Comments matching a configurable regular-expression pattern are flagged.\n  This is a template rule: by default no pattern is configured and the rule\n  does nothing. Once a pattern is provided, any comment whose text matches\n  the pattern is reported. Use this rule to ban specific comment styles or\n  markers that are not covered by the built-in TODO/FIXME checks.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With the pattern <code>(?i)hack</code>:</p>\n<pre>\nFeature: Payment processing\n\n  Scenario: Process a refund\n    Given the customer has a completed order\n    # HACK: workaround for the payment gateway          &lt;!-- Noncompliant --&gt;\n    When the customer requests a refund\n    Then the refund is processed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Remove or rephrase the offending comment:</p>\n<pre>\nFeature: Payment processing\n\n  Scenario: Process a refund\n    Given the customer has a completed order\n    When the customer requests a refund\n    Then the refund is processed\n</pre>\n\n<h2>Parameters</h2>\n<table>\n  <thead><tr><th>Name</th><th>Default</th><th>Description</th></tr></thead>\n  <tbody>\n    <tr>\n      <td><code>pattern</code></td>\n      <td><em>(empty)</em></td>\n      <td>Regular expression pattern to match against comment text.\n          Leave empty to disable the rule.</td>\n    </tr>\n  </tbody>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>comment-format</code> - requires a space after the comment marker.</li>\n  <li><code>todo-comment</code> - flags TODO markers left in the file.</li>\n  <li><code>fixme-comment</code> - flags FIXME markers left in the file.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "consistent-feature-language",
+      "name": "Consistent Feature Language",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "15min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/consistent-feature-language.md",
+      "sections": {
+        "root_cause": "<p>\n  All <code>Feature</code> files in a project should use the same Gherkin\n  language. Mixing languages (e.g., some features in English and others\n  in French) reduces readability and consistency across the test suite.\n  The expected language is taken from the file whose path sorts first\n  alphabetically among the analyzed files, so the same file is flagged\n  on every analysis run regardless of the order in which files are\n  processed.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>In <code>login.feature</code> (English):</p>\n<pre>\nFeature: User login\n  Scenario: Login with valid credentials\n    Given the user is on the login page\n    When the user enters valid credentials\n    Then the user is redirected to the dashboard\n</pre>\n<p>In <code>commandes.feature</code> (French):</p>\n<pre>\n# language: fr\nFonctionnalité: Gestion des commandes           &lt;!-- Noncompliant: inconsistent language --&gt;\n  Scénario: Passer une commande\n    Etant donné que le client est connecté\n    Quand le client passe une commande\n    Alors la commande est confirmée\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Use the same language for all features:</p>\n<pre>\nFeature: Order management\n  Scenario: Place an order\n    Given the customer is logged in\n    When the customer places an order\n    Then the order is confirmed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>feature-name-required</code> &mdash; Features must have a non-empty name</li>\n</ul>"
+      }
+    },
+    {
+      "key": "consistent-indentation",
+      "name": "Consistent Indentation",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/consistent-indentation.md",
+      "sections": {
+        "root_cause": "<p>\n  Gherkin files should use consistent indentation based on the nesting level\n  of each structural element. Consistent indentation improves readability and\n  makes the feature file easier to maintain across teams. Without a uniform\n  indentation style, files become harder to scan visually and merge conflicts\n  are more likely.\n</p>\n\n<p>\n  This rule is language-agnostic and correctly handles non-English Gherkin files\n  as well as <code>Rule</code> block nesting (Gherkin 6+). Tags are checked at\n  the same level as the element they annotate.\n</p>\n\n<h2>Indentation Levels</h2>\n<table>\n  <tr><th>Element</th><th>Level (Feature scope)</th><th>Level (inside Rule)</th></tr>\n  <tr><td>Feature keyword &amp; tags</td><td>0</td><td> - </td></tr>\n  <tr><td>Rule / Background / Scenario keywords &amp; tags</td><td>1</td><td>2</td></tr>\n  <tr><td>Steps / Examples keywords &amp; tags</td><td>2</td><td>3</td></tr>\n  <tr><td>Doc-string delimiters (<code>\"\"\"</code> or <code>```</code>)</td><td>3</td><td>4</td></tr>\n</table>\n\n<p>\n  Doc-string delimiter lines are checked at one level deeper than the step they\n  belong to. The content lines <em>between</em> the delimiters are not checked:\n  their indentation is part of the doc-string value and is preserved verbatim.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With the default indentation of 2 spaces per level:</p>\n<pre>\nFeature: Account registration\n\nScenario: New customer registers an account          &lt;!-- Noncompliant; expected 2 spaces --&gt;\n      Given the customer navigates to the registration page  &lt;!-- Noncompliant; expected 4 spaces --&gt;\n      When the customer submits valid details\n      Then an account is created\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\n@smoke\nFeature: Account registration\n\n  Scenario: New customer registers an account\n    Given the customer navigates to the registration page\n    When the customer submits valid details\n    Then an account is created\n\n  Rule: Business customers\n\n    Scenario: Business customer registers\n      Given the business customer navigates to registration\n      When the customer submits company details\n      Then a business account is created\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>indentation</code> parameter controls the number of spaces per\n  indentation level. The default value is <strong>2</strong>.\n</p>\n<table>\n  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>\n  <tr><td><code>indentation</code></td><td>int</td><td>2</td></tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-tab-characters</code> - tabs render at different widths and break alignment.</li>\n  <li><code>no-trailing-whitespace</code> - removes invisible characters at the end of a line.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "consistent-line-endings",
+      "name": "Consistent Line Endings",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "1min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/consistent-line-endings.md",
+      "sections": {
+        "root_cause": "<p>\n  All lines in a Gherkin file should use the same line ending style. Mixing\n  different line endings (<code>LF</code>, <code>CRLF</code>, or <code>CR</code>)\n  within a single file can cause issues in version control, produce noisy diffs,\n  and lead to unexpected behaviour in parsers and tools that assume a uniform\n  line ending format.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>File mixes <code>LF</code> and <code>CRLF</code> endings:</p>\n<pre>\nFeature: Subscription management(LF)\n(LF)\n  Scenario: Customer upgrades subscription(CRLF)     &lt;!-- Noncompliant --&gt;\n    Given the customer has a basic plan(LF)\n    When the customer selects the premium plan(CRLF)  &lt;!-- Noncompliant --&gt;\n    Then the subscription is upgraded(LF)\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>All lines use the same line ending style (<code>LF</code> by default):</p>\n<pre>\nFeature: Subscription management(LF)\n(LF)\n  Scenario: Customer upgrades subscription(LF)\n    Given the customer has a basic plan(LF)\n    When the customer selects the premium plan(LF)\n    Then the subscription is upgraded(LF)\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>lineEnding</code> parameter controls the expected line ending type.\n  The default value is <strong>LF</strong>.\n</p>\n<table>\n  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>\n  <tr><td><code>lineEnding</code></td><td>String</td><td>LF</td></tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>newline-at-end-of-file</code> - requires a trailing newline.</li>\n  <li><code>no-byte-order-mark</code> - rejects a leading UTF-8 byte order mark.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "consistent-scenario-keyword",
+      "name": "Consistent Scenario Keyword",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/consistent-scenario-keyword.md",
+      "sections": {
+        "root_cause": "<p>All scenarios within a single <code>.feature</code> file should use the same\nkeyword variant consistently. In Gherkin, <code>Scenario</code> and <code>Example</code>\nare synonyms for the same construct. Mixing both keywords in one file\nreduces readability and suggests inconsistent conventions.</p>\n\n<p>This rule tracks only non-outline scenario keywords. <code>Scenario Outline</code>\nand <code>Scenario Template</code> keywords are excluded because they represent a\ndistinct construct (parameterized scenarios). The rule correctly handles\nlocalized keywords for non-English Gherkin files.</p>\n\n<p>When multiple keyword variants are found, the minority variant is flagged.\nFor example, if three scenarios use <code>Scenario</code> and one uses\n<code>Example</code>, the single <code>Example</code> usage is reported.</p>\n\n<p>Alternatively, a fixed keyword can be enforced via the\n<code>preferredKeyword</code> parameter (e.g. <code>Scenario</code>): every\nscenario using a different keyword from the same family is then flagged,\nregardless of majority. <code>preferredOutlineKeyword</code> does the same\nfor outline keywords (e.g. enforcing <code>Scenario Outline</code> over\n<code>Scenario Template</code>). When both parameters are empty (the\ndefault), majority mode applies and outline keywords are not checked.</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User management\n\n  Scenario: Create a new user                    <!-- OK (majority) -->\n    Given an admin user\n    When they create a new account\n    Then the account is active\n\n  Scenario: Delete a user                        <!-- OK (majority) -->\n    Given an admin user\n    When they delete an account\n    Then the account is removed\n\n  Example: Update a user                         <!-- Noncompliant -->\n    Given an admin user\n    When they update an account\n    Then the changes are saved\n</pre>",
+        "how_to_fix": "<h2>Parameters</h2>\n<ul>\n  <li><code>preferredKeyword</code> &mdash; required keyword for scenarios; empty = majority mode (default empty)</li>\n  <li><code>preferredOutlineKeyword</code> &mdash; required keyword for scenario outlines; empty = not checked (default empty)</li>\n</ul>\n\n<h2>Compliant Solution</h2>\n<pre>\nFeature: User management\n\n  Scenario: Create a new user\n    Given an admin user\n    When they create a new account\n    Then the account is active\n\n  Scenario: Delete a user\n    Given an admin user\n    When they delete an account\n    Then the account is removed\n\n  Scenario: Update a user\n    Given an admin user\n    When they update an account\n    Then the changes are saved\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>consistent-feature-language</code> - Ensures all feature files use the same Gherkin language.</li>\n  <li><code>use-scenario-outline-for-examples</code> - Ensures the correct keyword is used with Examples tables.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "data-table-max-columns",
+      "name": "Data Table Max Columns",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention",
+        "pitfall"
+      ],
+      "remediation": "10min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/data-table-max-columns.md",
+      "sections": {
+        "root_cause": "<p>\n  Checks that data tables (in steps or <code>Examples</code> sections) do not exceed\n  a configurable column count. Wide data tables are difficult to read in editors\n  and code reviews, and usually indicate that the step is doing too much or that\n  the test data model needs restructuring.\n</p>\n<p>\n  The default limit is 10 columns. Teams can adjust this threshold based on their\n  project conventions and screen width preferences.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With <code>maxColumns</code> set to <code>5</code>:</p>\n<pre>\nScenario: Create user with full profile  <!-- Noncompliant -->\n  Given the following user data:\n    | name  | email       | phone    | address  | city    | country |\n    | Alice | a@test.com  | 555-0101 | 123 Main | Seattle | US      |\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nScenario: Create user with full profile\n  Given the following user data:\n    | name  | email       | phone    |\n    | Alice | a@test.com  | 555-0101 |\n  And the user address is:\n    | address  | city    | country |\n    | 123 Main | Seattle | US      |\n</pre>\n\n<h2>Configuration</h2>\n<table>\n  <tr>\n    <th>Parameter</th>\n    <th>Description</th>\n    <th>Default</th>\n  </tr>\n  <tr>\n    <td><code>maxColumns</code></td>\n    <td>Maximum number of columns allowed in a data table (step or Examples).</td>\n    <td><code>10</code></td>\n  </tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>examples-column-coverage</code> - ensures Examples columns are used in step placeholders.</li>\n  <li><code>examples-minimum-rows</code> - ensures Examples sections have sufficient data rows.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "examples-column-coverage",
+      "name": "Examples Column Coverage",
+      "severity": "CRITICAL",
+      "type": "BUG",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/examples-column-coverage.md",
+      "sections": {
+        "root_cause": "<p>\n  <code>Examples</code> tables must include columns for all variables\n  referenced in the <code>Scenario Outline</code> steps. Variables are\n  collected from step sentence text, doc string content, and data table\n  cells. When a step references a placeholder like\n  <code>&lt;username&gt;</code> but the\n  Examples table does not define a corresponding column, the placeholder\n  will not be substituted during test execution, leading to incorrect\n  or misleading test results.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User authentication\n\n  Scenario Outline: Login with different credentials\n    Given the user &lt;username&gt; exists in the system\n    When the user logs in with password &lt;password&gt;\n    Then the login attempt should be &lt;result&gt;\n\n    Examples:                                   &lt;!-- Noncompliant: missing \"result\" column --&gt;\n      | username    | password    |\n      | alice       | Secret123   |\n      | bob         | Pass456     |\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Add the missing column to the Examples table:</p>\n<pre>\nFeature: User authentication\n\n  Scenario Outline: Login with different credentials\n    Given the user &lt;username&gt; exists in the system\n    When the user logs in with password &lt;password&gt;\n    Then the login attempt should be &lt;result&gt;\n\n    Examples:\n      | username    | password    | result     |\n      | alice       | Secret123   | successful |\n      | bob         | Pass456     | successful |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>examples-minimum-rows</code> &mdash; Examples tables must have at least one data row</li>\n  <li><code>no-unused-variables</code> &mdash; Examples columns must be referenced in steps</li>\n</ul>"
+      }
+    },
+    {
+      "key": "examples-constant-column",
+      "name": "Examples Constant Column",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/examples-constant-column.md",
+      "sections": {
+        "root_cause": "<p>\n  An Examples column whose value is identical in every data row adds no\n  variation between examples. The constant value should be inlined into the\n  step text and the column removed, leaving the table to show only what\n  actually varies between scenarios. This keeps Examples tables focused and\n  easier to review.\n</p>\n<p>\n  Tables with fewer than two data rows are skipped, and each Examples\n  section of a Scenario Outline is judged independently - a value that is\n  constant within one section is flagged even if other sections use\n  different values.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Discount calculation\n\n  Scenario Outline: Apply discount\n    Given a customer of type \"&lt;type&gt;\"\n    When an order of &lt;amount&gt; is placed\n    Then the discount is &lt;discount&gt;\n\n    Examples:                                &lt;!-- Noncompliant - \"type\" is always \"gold\" --&gt;\n      | type | amount | discount |\n      | gold | 100    | 10       |\n      | gold | 200    | 20       |\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Inline the constant value into the step and remove the column:</p>\n<pre>\nFeature: Discount calculation\n\n  Scenario Outline: Apply discount\n    Given a customer of type \"gold\"\n    When an order of &lt;amount&gt; is placed\n    Then the discount is &lt;discount&gt;\n\n    Examples:\n      | amount | discount |\n      | 100    | 10       |\n      | 200    | 20       |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-unused-variables</code> - flags placeholders that no Examples column supplies.</li>\n  <li><code>examples-column-coverage</code> - flags Examples columns that no step placeholder consumes.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "examples-minimum-rows",
+      "name": "Examples Minimum Rows",
+      "severity": "CRITICAL",
+      "type": "BUG",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/examples-minimum-rows.md",
+      "sections": {
+        "root_cause": "<p>\n  <code>Examples</code> tables in a <code>Scenario Outline</code> must\n  contain a minimum number of data rows beyond the header row\n  (<code>minimumDataRows</code> parameter, default 2). The header row\n  defines the column names; data rows provide the actual values that are\n  substituted into the outline steps. A table with no data rows renders\n  the Scenario Outline useless, and a single data row barely justifies\n  the outline construct.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Currency conversion\n\n  Scenario Outline: Convert between currencies\n    Given the exchange rate from &lt;source&gt; to &lt;target&gt; is &lt;rate&gt;\n    When the customer converts &lt;amount&gt; &lt;source&gt;\n    Then the result should be &lt;expected&gt; &lt;target&gt;\n\n    Examples:                                   &lt;!-- Noncompliant: only 1 data row --&gt;\n      | source | target | rate | amount | expected |\n      | USD    | EUR    | 0.85 | 100    | 85       |\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Provide at least the required number of data rows:</p>\n<pre>\nFeature: Currency conversion\n\n  Scenario Outline: Convert between currencies\n    Given the exchange rate from &lt;source&gt; to &lt;target&gt; is &lt;rate&gt;\n    When the customer converts &lt;amount&gt; &lt;source&gt;\n    Then the result should be &lt;expected&gt; &lt;target&gt;\n\n    Examples:\n      | source | target | rate  | amount | expected |\n      | USD    | EUR    | 0.85  | 100    | 85       |\n      | GBP    | USD    | 1.27  | 50     | 63.50    |\n</pre>\n\n<h2>Parameters</h2>\n<ul>\n  <li><code>minimumDataRows</code> &mdash; minimum number of data rows required per Examples table (default 2)</li>\n</ul>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>examples-column-coverage</code> &mdash; Examples tables must include columns for all referenced variables</li>\n  <li><code>use-scenario-outline-for-examples</code> &mdash; Examples require Scenario Outline</li>\n</ul>"
+      }
+    },
+    {
+      "key": "examples-name-when-multiple",
+      "name": "Examples Name When Multiple",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/examples-name-when-multiple.md",
+      "sections": {
+        "root_cause": "<p>When a <code>Scenario Outline</code> has multiple <code>Examples</code> sections,\neach section should have a descriptive name. Unnamed <code>Examples</code> tables\nbecome indistinguishable in test reports, making failures harder to diagnose.</p>\n\n<p>This rule only triggers when there are two or more <code>Examples</code> sections\nwithin a single <code>Scenario Outline</code>. A single <code>Examples</code> section\ndoes not need a name because there is no ambiguity.</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User login\n\n  Scenario Outline: Login with credentials\n    Given a user with username \"&lt;username&gt;\"\n    When they enter password \"&lt;password&gt;\"\n    Then they should see \"&lt;result&gt;\"\n\n    Examples:                                    <!-- Noncompliant -->\n      | username | password  | result  |\n      | admin    | secret123 | Welcome |\n      | user1    | pass456   | Welcome |\n\n    Examples:                                    <!-- Noncompliant -->\n      | username | password | result         |\n      | admin    | wrong    | Invalid        |\n      | unknown  | any      | User not found |\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: User login\n\n  Scenario Outline: Login with credentials\n    Given a user with username \"&lt;username&gt;\"\n    When they enter password \"&lt;password&gt;\"\n    Then they should see \"&lt;result&gt;\"\n\n    Examples: Valid credentials\n      | username | password  | result  |\n      | admin    | secret123 | Welcome |\n      | user1    | pass456   | Welcome |\n\n    Examples: Invalid credentials\n      | username | password | result         |\n      | admin    | wrong    | Invalid        |\n      | unknown  | any      | User not found |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>examples-minimum-rows</code> - Ensures Examples tables have sufficient data rows.</li>\n  <li><code>examples-column-coverage</code> - Ensures all Examples columns are used in step placeholders.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "examples-separator-line",
+      "name": "Examples Separator Line",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/examples-separator-line.md",
+      "sections": {
+        "root_cause": "<p>\n  An <code>Examples</code> section in a <code>Scenario Outline</code> should be\n  preceded by a blank line. This visual separator makes the feature file easier\n  to read by clearly distinguishing the step definitions from the data table\n  that drives them. Without the blank line, the <code>Examples</code> section\n  blends into the steps, making the structure harder to scan.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Currency conversion\n\n  Scenario Outline: Convert between currencies\n    Given the exchange rate from &lt;from&gt; to &lt;to&gt; is &lt;rate&gt;\n    When the customer converts &lt;amount&gt; &lt;from&gt;\n    Then the result is &lt;expected&gt; &lt;to&gt;\n    Examples:                                        &lt;!-- Noncompliant; no blank line before Examples --&gt;\n      | from | to  | rate | amount | expected |\n      | USD  | EUR | 0.85 | 100    | 85       |\n      | GBP  | USD | 1.27 | 200    | 254      |\n</pre>\n\n<h2>Notes</h2>\n<p>\n  This rule applies to every <code>Examples</code> section within a\n  <code>Scenario Outline</code>. If a <code>Scenario Outline</code> has\n  multiple <code>Examples</code> blocks, each one should be preceded by\n  a blank line. Tag lines directly above the <code>Examples</code> keyword\n  belong to the Examples section, so the blank line is expected above them.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Currency conversion\n\n  Scenario Outline: Convert between currencies\n    Given the exchange rate from &lt;from&gt; to &lt;to&gt; is &lt;rate&gt;\n    When the customer converts &lt;amount&gt; &lt;from&gt;\n    Then the result is &lt;expected&gt; &lt;to&gt;\n\n    Examples:\n      | from | to  | rate | amount | expected |\n      | USD  | EUR | 0.85 | 100    | 85       |\n      | GBP  | USD | 1.27 | 200    | 254      |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>blank-line-before-scenario</code> - applies the same visual separation to scenarios.</li>\n  <li><code>no-multiple-empty-lines</code> - prevents the opposite problem of excessive blank lines.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "feature-description-recommended",
+      "name": "Feature Description Recommended",
+      "severity": "INFO",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/feature-description-recommended.md",
+      "sections": {
+        "root_cause": "<p>\n  Features should include a description below the <code>Feature</code> name.\n  The description provides context about the business domain, the user story,\n  or the acceptance criteria being validated. Without a description, readers\n  must infer the purpose of the feature solely from the scenario names, which\n  may not convey enough information for stakeholders unfamiliar with the codebase.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Account registration                   &lt;!-- Noncompliant --&gt;\n\n  Scenario: New customer registers with valid email\n    Given the registration page is displayed\n    When the customer enters a valid email address and password\n    Then the account is created successfully\n    And a confirmation email is sent\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Add a description that explains the business context:</p>\n<pre>\nFeature: Account registration\n  New customers must be able to create an account using a valid email\n  address. The registration process includes email verification to\n  prevent fraudulent accounts.\n\n  Scenario: New customer registers with valid email\n    Given the registration page is displayed\n    When the customer enters a valid email address and password\n    Then the account is created successfully\n    And a confirmation email is sent\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>feature-name-required</code> &mdash; Features must have a non-empty name</li>\n</ul>"
+      }
+    },
+    {
+      "key": "feature-file-max-lines",
+      "name": "Feature File Max Lines",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention",
+        "pitfall"
+      ],
+      "remediation": "15min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/feature-file-max-lines.md",
+      "sections": {
+        "root_cause": "<p>\n  Checks that feature files do not exceed a configurable line count.\n  Feature files that grow too long become difficult to navigate, review,\n  and maintain. This complements <code>scenario-count-limit</code> by also\n  catching files that are long due to large data tables, doc strings,\n  or verbose descriptions.\n</p>\n<p>\n  The default limit is 300 lines. Teams can adjust this threshold based\n  on their project conventions.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With <code>maxLines</code> set to <code>300</code>:</p>\n<pre>\nFeature: Comprehensive order management  <!-- Noncompliant - file exceeds 300 lines -->\n\n  Scenario: Place order\n    Given the user has items in the cart\n    When the user places the order\n    Then the order is confirmed\n\n  ... (many more scenarios, large data tables, doc strings)\n  ... (total file length: 350 lines)\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Split the feature file into smaller, focused files:</p>\n<pre>\n# order-placement.feature (120 lines)\nFeature: Order placement\n  ...\n\n# order-cancellation.feature (95 lines)\nFeature: Order cancellation\n  ...\n\n# order-tracking.feature (80 lines)\nFeature: Order tracking\n  ...\n</pre>\n\n<h2>Configuration</h2>\n<table>\n  <tr>\n    <th>Parameter</th>\n    <th>Description</th>\n    <th>Default</th>\n  </tr>\n  <tr>\n    <td><code>maxLines</code></td>\n    <td>Maximum number of lines allowed in a single feature file.</td>\n    <td><code>300</code></td>\n  </tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>scenario-count-limit</code> - limits the number of scenarios per feature.</li>\n  <li><code>step-count-limit</code> - limits the number of steps per scenario.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "feature-file-required",
+      "name": "Feature File Required",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/feature-file-required.md",
+      "sections": {
+        "root_cause": "<p>\n  Every <code>.feature</code> file must contain a <code>Feature</code>\n  definition. The <code>Feature</code> keyword is the top-level container\n  in a Gherkin document and provides the context for all scenarios within\n  the file. A file without this keyword serves no purpose in a Cucumber\n  test suite and should either have a Feature added or be removed entirely.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\n# This file has no Feature keyword\nScenario: Customer places an order\n  Given the customer has items in their shopping cart\n  When the customer proceeds to checkout\n  Then the order confirmation page is displayed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Add a <code>Feature</code> definition at the top of the file:</p>\n<pre>\nFeature: Order placement\n  Customers should be able to place orders through the checkout process.\n\n  Scenario: Customer places an order\n    Given the customer has items in their shopping cart\n    When the customer proceeds to checkout\n    Then the order confirmation page is displayed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>feature-name-required</code> &mdash; Features must also have a non-empty name</li>\n  <li><code>scenario-required</code> &mdash; Features must contain at least one Scenario</li>\n</ul>"
+      }
+    },
+    {
+      "key": "feature-name-matches-filename",
+      "name": "Feature Name Matches Filename",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/feature-name-matches-filename.md",
+      "sections": {
+        "root_cause": "<p>\n  Feature names should broadly correspond to their file names to aid\n  discoverability and navigation in large test suites. A file named\n  <code>payment-refund.feature</code> should contain a Feature with\n  a name related to payment refunds, not an unrelated topic like\n  \"Order cancellation policy\".\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>File: <code>payment-refund.feature</code></p>\n<pre>\nFeature: Order cancellation policy           &lt;!-- Noncompliant --&gt;\n\n  Scenario: Cancel a pending order\n    Given a pending order exists\n    When the customer requests cancellation\n    Then the order is cancelled\n</pre>\n<p>\n  None of the significant words in the Feature name (\"order\",\n  \"cancellation\", \"policy\") appear in the file name\n  (\"payment-refund\").\n</p>\n\n<h2>How It Works</h2>\n<p>\n  Both the Feature name and the file name are \"slugified\" (lowercased,\n  non-alphanumeric characters replaced with hyphens). Words of 3 or\n  more characters from the Feature name are then checked against the\n  file name slug. If none of the Feature name's significant words\n  appear anywhere in the file name, an issue is reported.\n</p>\n<p>\n  This rule is off by default because the matching is inherently\n  heuristic and some teams use numeric prefixes or categorisation\n  schemes in file names that do not correspond to Feature names.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>File: <code>payment-refund.feature</code></p>\n<pre>\nFeature: Payment refund processing\n\n  Scenario: Refund a completed payment\n    Given a payment has been completed\n    When a refund is requested\n    Then the refund is processed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>file-name-convention</code> - constrains the file name itself.</li>\n  <li><code>feature-name-required</code> - requires the Feature to be named at all.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "feature-name-required",
+      "name": "Feature Name Required",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/feature-name-required.md",
+      "sections": {
+        "root_cause": "<p>\n  Every <code>Feature</code> must have a non-empty name. The Feature name\n  appears in test reports, dashboards, and CI/CD pipelines. An unnamed\n  Feature makes it impossible to quickly identify which business capability\n  is being tested when reviewing results or investigating failures.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature:                                        &lt;!-- Noncompliant --&gt;\n\n  Scenario: Transfer funds between accounts\n    Given the customer has a savings account with a balance of $5000\n    When the customer transfers $500 to their checking account\n    Then the savings account balance should be $4500\n    And the checking account balance should increase by $500\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Provide a meaningful name that describes the business capability:</p>\n<pre>\nFeature: Inter-account fund transfers\n\n  Scenario: Transfer funds between accounts\n    Given the customer has a savings account with a balance of $5000\n    When the customer transfers $500 to their checking account\n    Then the savings account balance should be $4500\n    And the checking account balance should increase by $500\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>feature-description-recommended</code> &mdash; Features should also include a description</li>\n  <li><code>unique-feature-name</code> &mdash; Feature names must be unique across files</li>\n</ul>"
+      }
+    },
+    {
+      "key": "feature-rule-count-limit",
+      "name": "Feature Rule Count Limit",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention",
+        "design"
+      ],
+      "remediation": "15min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/feature-rule-count-limit.md",
+      "sections": {
+        "root_cause": "<p>\n  Features should not exceed a configurable number of <code>Rule</code> blocks.\n  Excessive <code>Rule</code> blocks in a single Feature suggest it covers too\n  many business domains and should be split into separate feature files.\n  The default limit is <strong>8</strong> <code>Rule</code> blocks per Feature.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: E-commerce platform               <!-- Noncompliant -->\n\n  Rule: User registration\n    Scenario: Register new user\n      Given ...\n\n  Rule: Product catalog\n    Scenario: Browse products\n      Given ...\n\n  # ... 7 more Rule blocks ...\n\n  Rule: Analytics dashboard\n    Scenario: View analytics\n      Given ...\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\n# user-management.feature\nFeature: User Management\n\n  Rule: User registration\n    Scenario: Register new user\n      Given ...\n\n  Rule: User authentication\n    Scenario: Log in\n      Given ...\n\n# product-catalog.feature\nFeature: Product Catalog\n\n  Rule: Product browsing\n    Scenario: Browse products\n      Given ...\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>maxRules</code> parameter sets the maximum allowed <code>Rule</code>\n  blocks per Feature. Default value: <strong>8</strong>.\n</p>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>scenario-count-limit</code> - limits scenarios per Feature</li>\n  <li><code>rule-scenario-count-limit</code> - limits scenarios per Rule block</li>\n</ul>"
+      }
+    },
+    {
+      "key": "file-name-convention",
+      "name": "File Name Convention",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/file-name-convention.md",
+      "sections": {
+        "root_cause": "<p>\n  Feature file names should follow a consistent naming convention. By default,\n  filenames must start with a lowercase letter, contain only letters, digits,\n  and hyphens, and end with the <code>.feature</code> extension. A consistent\n  naming convention makes it easier to locate files, avoids filesystem\n  compatibility issues across platforms, and improves organisation in large\n  projects.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>Filenames that violate the default pattern:</p>\n<pre>\nBadName.feature                   &lt;!-- Noncompliant; starts with uppercase --&gt;\nMy Feature File.feature           &lt;!-- Noncompliant; contains spaces --&gt;\n123-numbers-first.feature         &lt;!-- Noncompliant; starts with digit --&gt;\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\naccount-registration.feature\npassword-reset.feature\norder-history.feature\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>pattern</code> parameter is a regular expression that filenames\n  must match. The default pattern is <code>^[a-z][-A-Za-z0-9]*\\.feature$</code>.\n</p>\n<table>\n  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>\n  <tr>\n    <td><code>pattern</code></td>\n    <td>String (regex)</td>\n    <td><code>^[a-z][-A-Za-z0-9]*\\.feature$</code></td>\n  </tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>feature-name-matches-filename</code> - keeps the Feature name aligned with the file name.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "fixme-comment",
+      "name": "FIXME Comment",
+      "severity": "INFO",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/fixme-comment.md",
+      "sections": {
+        "root_cause": "<p>\n  Comments containing <code>FIXME</code> markers should be resolved and\n  removed. FIXME comments indicate known defects or issues that are\n  better tracked in an issue tracker. Leaving them in feature files\n  risks them being overlooked as the test suite grows.\n</p>\n\n<p>\n  Matching is case-insensitive and recognises the marker as a whole word\n  with an optional single space, hyphen or underscore separator:\n  <code>FIXME</code>, <code>fix-me</code>, <code>fix_me</code> and\n  <code>fix me</code> are all flagged. Words that merely contain the\n  letters (e.g. <em>suffix mention</em>) are not.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Payment processing\n\n  Scenario: Process a credit card payment\n    Given the customer has items in the cart\n    # FIXME: this step fails intermittently            &lt;!-- Noncompliant --&gt;\n    When the customer pays by credit card\n    Then the payment is processed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Address the issue and remove the FIXME comment:</p>\n<pre>\nFeature: Payment processing\n\n  Scenario: Process a credit card payment\n    Given the customer has items in the cart\n    When the customer pays by credit card\n    Then the payment is processed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>todo-comment</code> - flags TODO markers left in the file.</li>\n  <li><code>comment-pattern-match</code> - flags comments matching any configured pattern.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "given-step-pattern",
+      "name": "Given Step Pattern",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/given-step-pattern.md",
+      "sections": {
+        "root_cause": "<p>\n  <code>Given</code> steps should match the configured regular-expression\n  pattern. This rule lets teams enforce naming conventions on precondition\n  steps &mdash; for example, requiring them to start with a noun phrase\n  such as &ldquo;the&rdquo; or &ldquo;a&rdquo;.\n  <code>And</code>/<code>But</code> steps continuing a <code>Given</code>\n  are checked as well. If the configured pattern is not a valid regular\n  expression, a file-level issue is raised instead of failing the analysis.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With the pattern <code>^the .*</code>:</p>\n<pre>\nFeature: Account management\n\n  Scenario: Deactivate an account\n    Given user has an active account                   &lt;!-- Noncompliant --&gt;\n    When the account is deactivated\n    Then the account status is inactive\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Account management\n\n  Scenario: Deactivate an account\n    Given the user has an active account\n    When the account is deactivated\n    Then the account status is inactive\n</pre>\n\n<h2>Parameters</h2>\n<table>\n  <thead><tr><th>Name</th><th>Default</th><th>Description</th></tr></thead>\n  <tbody>\n    <tr>\n      <td><code>pattern</code></td>\n      <td><code>.*</code></td>\n      <td>Regular expression that Given step text must match.</td>\n    </tr>\n  </tbody>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>when-step-pattern</code> - applies the same constraint to action steps.</li>\n  <li><code>then-step-pattern</code> - applies the same constraint to outcome steps.</li>\n  <li><code>step-order-given-when-then</code> - keeps the three step types in order.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "max-line-length",
+      "name": "Max Line Length",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/max-line-length.md",
+      "sections": {
+        "root_cause": "<p>\n  Checks that no line in a feature file exceeds a configurable maximum length.\n  Long lines are hard to read, force horizontal scrolling in editors, and make\n  side-by-side diffs in code review tools difficult to follow. Every raw line\n  of the file is checked, including steps, data tables, comments, and doc\n  strings.\n</p>\n<p>\n  The default limit is 120 characters. Teams can adjust this threshold based\n  on their project conventions.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With <code>maxLength</code> set to <code>120</code>:</p>\n<pre>\nFeature: Order processing\n\n  Scenario: Submit an order\n    Given the user has an order\n    When the user submits the order with customer reference \"ACME-2026-0001\", priority \"express\", and delivery note \"rear dock\"  &lt;!-- Noncompliant - line exceeds 120 characters --&gt;\n    Then the order is accepted\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Split long content across steps or a data table:</p>\n<pre>\nFeature: Order processing\n\n  Scenario: Submit an order\n    Given the user has an order\n    When the user submits the order with:\n      | customer reference | ACME-2026-0001 |\n      | priority           | express        |\n      | delivery note      | rear dock      |\n    Then the order is accepted\n</pre>\n\n<h2>Configuration</h2>\n<table>\n  <tr>\n    <th>Parameter</th>\n    <th>Description</th>\n    <th>Default</th>\n  </tr>\n  <tr>\n    <td><code>maxLength</code></td>\n    <td>Maximum number of characters allowed in a line.</td>\n    <td><code>120</code></td>\n  </tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>step-sentence-max-length</code> - limits the length of the step sentence text.</li>\n  <li><code>feature-file-max-lines</code> - limits the number of lines per feature file.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "max-tags-per-element",
+      "name": "Max Tags Per Element",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/max-tags-per-element.md",
+      "sections": {
+        "root_cause": "<p>\n  Checks that <code>Feature</code>, <code>Rule</code>, <code>Scenario</code>, and\n  <code>Examples</code> elements do not exceed a configurable maximum number of tags.\n  Excessive tags on a single element suggest poor test organization or over-classification\n  and make test reports harder to filter effectively.\n</p>\n<p>\n  The default limit is 8 tags per element. Teams can adjust this threshold based on\n  their tagging conventions.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With <code>maxTags</code> set to <code>5</code>:</p>\n<pre>\nFeature: User authentication\n\n@smoke @regression @integration @ui @api @nightly  &lt;!-- Noncompliant --&gt;\nScenario: User logs in\n  Given a registered user\n  When the user logs in\n  Then the dashboard is displayed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: User authentication\n\n@smoke @regression @ui\nScenario: User logs in\n  Given a registered user\n  When the user logs in\n  Then the dashboard is displayed\n</pre>\n\n<h2>Configuration</h2>\n<table>\n  <tr>\n    <th>Parameter</th>\n    <th>Description</th>\n    <th>Default</th>\n  </tr>\n  <tr>\n    <td><code>maxTags</code></td>\n    <td>Maximum number of tags allowed per element (Feature, Rule, Scenario, or Examples).</td>\n    <td><code>8</code></td>\n  </tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-duplicate-tags</code> - removes duplicate tags that inflate tag counts.</li>\n  <li><code>no-redundant-tags</code> - removes tags that are redundant due to inheritance.</li>\n  <li><code>tag-name-pattern</code> - enforces consistent tag naming conventions.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "name-max-length",
+      "name": "Name Max Length",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "10min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/name-max-length.md",
+      "sections": {
+        "root_cause": "<p>Feature, Scenario, and Rule names should not exceed a configurable maximum length.\nExcessively long names are difficult to read in reports, IDE tooltips, CI logs, and\nSonarQube dashboards. The default maximum is 120 characters, which aligns with\ncommon line-length conventions.</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: This is an extremely long feature name that goes on and on describing every little detail of the entire feature in a single line which is very hard to read\n\n  <!-- Noncompliant: scenario name exceeds 120 characters -->\n  Scenario: Verify that when a user enters their username and password and clicks the login button then they are redirected to the main dashboard page showing all widgets\n    Given a registered user\n    When the user logs in\n    Then the dashboard is displayed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: User authentication\n\n  Scenario: Successful login redirects to dashboard\n    Given a registered user\n    When the user logs in\n    Then the dashboard is displayed\n</pre>\n\n<h2>Configuration</h2>\n<table>\n  <thead>\n    <tr><th>Parameter</th><th>Description</th><th>Default</th></tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td><code>maxLength</code></td>\n      <td>Maximum allowed length for Feature, Scenario, and Rule names.</td>\n      <td><code>120</code></td>\n    </tr>\n  </tbody>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>step-sentence-max-length</code> - limits the length of individual step sentences.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "newline-at-end-of-file",
+      "name": "Newline at End of File",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "1min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/newline-at-end-of-file.md",
+      "sections": {
+        "root_cause": "<p>\n  Files should end with a trailing newline character. The POSIX standard defines\n  a line as a sequence of characters ending with a newline. Files that do not\n  end with a newline may cause issues with certain tools that expect the\n  standard line format, including some diff utilities, shell commands, and\n  concatenation operations.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>File does not end with a newline (shown with <code>EOF</code>):</p>\n<pre>\nFeature: Shipment tracking\n\n  Scenario: Customer tracks a shipment\n    Given the customer has placed an order\n    When the customer views the tracking page\n    Then the current shipment status is displayedEOF   &lt;!-- Noncompliant --&gt;\n</pre>\n\n<h2>Notes</h2>\n<p>\n  Most text editors add a trailing newline by default. If yours does not,\n  configure it to do so. In <code>.editorconfig</code> you can set\n  <code>insert_final_newline = true</code> to enforce this across the project.\n  This is a file-level issue reported once per file, not per line.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>File ends with a newline after the last line:</p>\n<pre>\nFeature: Shipment tracking\n\n  Scenario: Customer tracks a shipment\n    Given the customer has placed an order\n    When the customer views the tracking page\n    Then the current shipment status is displayed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>consistent-line-endings</code> - requires one line ending style throughout the file.</li>\n  <li><code>no-trailing-whitespace</code> - removes invisible characters at the end of a line.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-byte-order-mark",
+      "name": "No Byte Order Mark",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "1min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-byte-order-mark.md",
+      "sections": {
+        "root_cause": "<p>\n  Gherkin files encoded in UTF-8 should not begin with a Byte Order Mark (BOM).\n  The UTF-8 BOM is the three-byte sequence <code>EF BB BF</code> (Unicode\n  character <code>U+FEFF</code>) placed at the start of a file. While some\n  Windows editors insert this marker automatically, it is unnecessary for UTF-8\n  and can cause problems with parsers, build tools, and version control systems\n  that do not expect it.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>File begins with a BOM (shown as <code>[BOM]</code>):</p>\n<pre>\n[BOM]Feature: Warehouse inventory                    &lt;!-- Noncompliant --&gt;\n\n  Scenario: Receive new stock\n    Given a shipment of 100 units arrives\n    When the warehouse clerk scans the items\n    Then the inventory count increases by 100\n</pre>\n\n<h2>Notes</h2>\n<p>\n  To remove a BOM, open the file in an editor that supports encoding changes\n  and re-save it as \"UTF-8 without BOM\". In VS Code this can be done via the\n  encoding selector in the status bar. This is reported as a file-level issue\n  on line 1.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>File starts directly with the Feature keyword, no BOM present:</p>\n<pre>\nFeature: Warehouse inventory\n\n  Scenario: Receive new stock\n    Given a shipment of 100 units arrives\n    When the warehouse clerk scans the items\n    Then the inventory count increases by 100\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>consistent-line-endings</code> - requires one line ending style throughout the file.</li>\n  <li><code>newline-at-end-of-file</code> - requires a trailing newline.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-commented-out-steps",
+      "name": "No Commented Out Steps",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "2min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-commented-out-steps.md",
+      "sections": {
+        "root_cause": "<p>\n  Comments that contain Gherkin step keywords (<code>Given</code>,\n  <code>When</code>, <code>Then</code>, <code>And</code>, <code>But</code>,\n  <code>*</code>) indicate dead or abandoned behaviour definitions.\n  Step keywords are resolved from the file's Gherkin dialect (the\n  <code># language:</code> declaration, defaulting to English), so\n  commented-out steps are detected in any supported language.\n  Commented-out steps should be removed or restored as active steps to\n  keep feature files clean, accurate, and free of misleading content.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Order processing\n\n  Scenario: Process a new order\n    Given a customer has items in the cart\n    When the customer submits the order\n    Then the order is created\n\n  # Given the user is logged in             &lt;!-- Noncompliant --&gt;\n  # When the user clicks the button          &lt;!-- Noncompliant --&gt;\n  # Then the page refreshes                  &lt;!-- Noncompliant --&gt;\n</pre>\n<p>\n  These comment lines start with Gherkin step keywords, indicating they\n  were once active steps that have been commented out rather than properly\n  removed.\n</p>\n\n<h2>Exceptions</h2>\n<p>\n  This rule is off by default because some comments legitimately mention\n  step keywords in explanatory text (e.g.,\n  <code># Note: the Given step above establishes the session</code>).\n  Teams that enable this rule accept the trade-off of occasional false\n  positives on such comments. The <code># language:</code> declaration\n  is always excluded.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Remove the commented-out steps entirely, or restore them if needed:</p>\n<pre>\nFeature: Order processing\n\n  Scenario: Process a new order\n    Given a customer has items in the cart\n    When the customer submits the order\n    Then the order is created\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>comment-format</code> - requires a space after the comment marker.</li>\n  <li><code>no-partially-commented-tag-lines</code> - flags tag lines that are only partly commented out.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-conflicting-tags",
+      "name": "No Conflicting Tags",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-conflicting-tags.md",
+      "sections": {
+        "root_cause": "<p>\n  Tags representing mutually exclusive states must not appear together on\n  the same element. For example, <code>@wip</code> and\n  <code>@release-ready</code>, or <code>@manual</code> and\n  <code>@automated</code>, are contradictory classifications that indicate\n  an inconsistency in the test metadata.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With <code>conflictPairs</code> set to <code>wip+release-ready</code>:</p>\n<pre>\nFeature: Feature development\n\n  @wip @release-ready                       &lt;!-- Noncompliant --&gt;\n  Scenario: Work in progress feature\n    Given a new feature is being developed\n    When the feature is partially implemented\n    Then the tests should indicate incomplete work\n</pre>\n<p>\n  The <code>@wip</code> tag indicates the feature is in development, while\n  <code>@release-ready</code> indicates it is ready for release. Both\n  cannot be true simultaneously.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Remove the contradictory tag:</p>\n<pre>\nFeature: Feature development\n\n  @wip\n  Scenario: Work in progress feature\n    Given a new feature is being developed\n    When the feature is partially implemented\n    Then the tests should indicate incomplete work\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>conflictPairs</code> parameter defines which tag pairs are\n  considered conflicting. Each pair uses <code>+</code> as separator, and\n  pairs are comma-separated. Tag names are specified without the\n  <code>@</code> prefix.\n</p>\n<table>\n  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>\n  <tr><td><code>conflictPairs</code></td><td>String</td><td><em>(empty)</em></td></tr>\n</table>\n<p>\n  Example: <code>wip+release-ready,manual+automated,slow+fast</code>\n</p>\n<p>\n  When the default empty value is used, the rule is effectively inactive\n  and will not report any issues.\n</p>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-duplicate-tags</code> - flags the same tag applied twice.</li>\n  <li><code>no-redundant-tags</code> - flags tags already inherited from a parent element.</li>\n  <li><code>required-tags</code> - requires a tag from a configured set.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-duplicate-scenario-bodies",
+      "name": "No Duplicate Scenario Bodies",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "15min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-duplicate-scenario-bodies.md",
+      "sections": {
+        "root_cause": "<p>\n  Scenarios within the same Feature or Rule block should not have identical\n  step sequences. Duplicate scenario bodies increase maintenance cost,\n  inflate test counts without adding coverage, and often indicate missed\n  opportunities for Scenario Outline parameterisation or shared Background\n  extraction.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User management\n\n  Scenario: Create a new user\n    Given an admin is logged in\n    When the admin creates a new user\n    Then the user is added to the system\n\n  Scenario: Duplicate user creation          &lt;!-- Noncompliant --&gt;\n    Given an admin is logged in\n    When the admin creates a new user\n    Then the user is added to the system\n</pre>\n<p>\n  Both scenarios have identical step sequences. The second one provides no\n  additional test coverage.\n</p>\n\n<h2>Scope</h2>\n<p>\n  Feature-level scenarios are compared only with other Feature-level\n  scenarios. Scenarios inside a <code>Rule</code> block are compared only\n  within that same Rule. There is no cross-Rule or cross-Feature comparison.\n  Scenarios with zero steps are excluded (already caught by\n  <code>step-required</code>). Step data tables and doc strings are part of\n  the comparison, so scenarios with identical sentences but different\n  attached data are not duplicates.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Remove the duplicate or extract differences into a Scenario Outline:</p>\n<pre>\nFeature: User management\n\n  Scenario: Create a new user\n    Given an admin is logged in\n    When the admin creates a new user\n    Then the user is added to the system\n\n  Scenario: Deactivate a user\n    Given an admin is logged in\n    When the admin deactivates a user\n    Then the user can no longer log in\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-duplicate-steps</code> - flags a step repeated inside one scenario.</li>\n  <li><code>unique-scenario-name</code> - requires scenario names to differ.</li>\n  <li><code>use-scenario-outline-for-examples</code> - replaces near-identical scenarios with an outline.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-duplicate-steps",
+      "name": "No Duplicate Steps",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-duplicate-steps.md",
+      "sections": {
+        "root_cause": "<p>\n  Steps within a scenario or background must not be duplicated. Duplicate\n  steps add no value and make scenarios harder to read and maintain. If\n  the same step appears multiple times consecutively, it should be removed.\n  If steps are repeated with different contexts, they may need to be\n  consolidated or the scenario may need to be restructured.\n  Steps with the same sentence but different attached data tables or doc\n  strings are not considered duplicates.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Shopping cart management\n\n  Scenario: Add multiple items\n    Given the customer is logged in\n    When the customer adds \"Laptop\" to the cart\n    When the customer adds \"Laptop\" to the cart    &lt;!-- Noncompliant: duplicate --&gt;\n    Then the cart contains 2 items\n\n  Background:                                     &lt;!-- Noncompliant: duplicate in Background --&gt;\n    Given the customer is logged in\n    Given the customer is logged in\n    And the product catalog is available\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Remove duplicate steps or consolidate them appropriately:</p>\n<pre>\nFeature: Shopping cart management\n\n  Background:\n    Given the customer is logged in\n    And the product catalog is available\n\n  Scenario: Add multiple items\n    When the customer adds \"Laptop\" to the cart\n    And the customer adds another \"Laptop\" to the cart\n    Then the cart contains 2 items\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>shared-given-to-background</code> &mdash; Common Given steps should be moved to Background</li>\n  <li><code>step-count-limit</code> &mdash; Scenarios should not exceed a maximum number of steps</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-duplicate-tags",
+      "name": "No Duplicate Tags",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-duplicate-tags.md",
+      "sections": {
+        "root_cause": "<p>The same tag should not appear more than once on a single element.\nDuplicate tags on the same <code>Feature</code>, <code>Rule</code>,\n<code>Scenario</code>, or <code>Examples</code> section are always redundant\nand indicate a copy-paste error or oversight.</p>\n\n<p>This check is different from <code>no-redundant-tags</code>, which detects\ntags that duplicate inherited tags from a parent element. This rule catches\nexact duplicate tags within the same element's own tag list.</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\n@smoke @regression @smoke                        <!-- Noncompliant: @smoke duplicated on Feature -->\nFeature: User login\n\n  @critical @critical                             <!-- Noncompliant: @critical duplicated on Scenario -->\n  Scenario: Successful login\n    Given a valid user\n    When they enter credentials\n    Then they are logged in\n\n  Scenario Outline: Login with various roles\n    Given a user with role \"&lt;role&gt;\"\n    When they log in\n    Then they see \"&lt;page&gt;\"\n\n    @fast @fast                                   <!-- Noncompliant: @fast duplicated on Examples -->\n    Examples: Roles\n      | role  | page      |\n      | admin | dashboard |\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\n@smoke @regression\nFeature: User login\n\n  @critical\n  Scenario: Successful login\n    Given a valid user\n    When they enter credentials\n    Then they are logged in\n\n  Scenario Outline: Login with various roles\n    Given a user with role \"&lt;role&gt;\"\n    When they log in\n    Then they see \"&lt;page&gt;\"\n\n    @fast\n    Examples: Roles\n      | role  | page      |\n      | admin | dashboard |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-redundant-tags</code> - Flags scenario tags that duplicate Feature-level tags.</li>\n  <li><code>no-redundant-rule-tags</code> - Flags scenario tags that duplicate Rule-level tags.</li>\n  <li><code>tag-name-pattern</code> - Enforces tag naming conventions.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-empty-data-table-cells",
+      "name": "No Empty Data Table Cells",
+      "severity": "MAJOR",
+      "type": "BUG",
+      "tags": [
+        "gherkin",
+        "suspicious"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-empty-data-table-cells.md",
+      "sections": {
+        "root_cause": "<p>\n  Each cell in a step-attached data table should contain a value. Empty cells\n  usually indicate incomplete test data and can result in steps silently\n  consuming blank values instead of meaningful data, which may cause\n  misleading test results. This rule is the data-table counterpart of\n  <code>no-empty-examples-cells</code>, which covers Examples tables.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User registration\n\n  Scenario: Register users\n    Given the following users exist:           &lt;!-- Noncompliant --&gt;\n      | name  | email             |\n      | alice |                   |\n      | bob   | bob@example.test  |\n</pre>\n<p>\n  The <code>email</code> cell in the second row is empty. The step will\n  receive a blank value, which may cause it to pass without testing\n  meaningful data.\n</p>\n\n<h2>Exceptions</h2>\n<p>\n  This rule is off by default because some teams intentionally test with\n  empty values (e.g., form validation with blank fields). Enable it only\n  when empty cells always indicate incomplete test data in your project.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Populate all cells with meaningful values:</p>\n<pre>\nFeature: User registration\n\n  Scenario: Register users\n    Given the following users exist:\n      | name  | email              |\n      | alice | alice@example.test |\n      | bob   | bob@example.test   |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-empty-examples-cells</code> - the equivalent rule for Examples tables.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-empty-doc-strings",
+      "name": "No Empty Doc Strings",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-empty-doc-strings.md",
+      "sections": {
+        "root_cause": "<p>\n  Doc strings (triple-quoted blocks delimited by <code>\"\"\"</code> or\n  <code>```</code>) must not be empty. An empty doc string serves no\n  purpose - it was either left as a placeholder that was never filled\n  in, or its content was deleted without removing the delimiters.\n  This is always a mistake.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: API testing\n\n  Scenario: Submit an empty payload\n    Given the API endpoint is available\n    When the user submits the following payload:  &lt;!-- Noncompliant --&gt;\n      \"\"\"\n      \"\"\"\n    Then the response status is 400\n</pre>\n<p>\n  The doc string between the <code>\"\"\"</code> delimiters is empty.\n  If the intent is to test with an empty payload, use an explicit\n  empty string in the step text instead.\n</p>\n\n<h2>Exceptions</h2>\n<p>\n  Doc strings containing only whitespace are treated as empty.\n  Doc strings with a content type annotation (e.g., <code>\"\"\"json</code>)\n  but no body are still flagged. Steps without doc strings are not affected.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Either fill in the doc string with content:</p>\n<pre>\nFeature: API testing\n\n  Scenario: Submit a JSON payload\n    Given the API endpoint is available\n    When the user submits the following payload:\n      \"\"\"json\n      {\n        \"name\": \"Alice\",\n        \"email\": \"alice@example.com\"\n      }\n      \"\"\"\n    Then the response status is 200\n</pre>\n<p>Or remove the doc string entirely if it is not needed:</p>\n<pre>\nFeature: API testing\n\n  Scenario: Submit an empty payload\n    Given the API endpoint is available\n    When the user submits an empty payload\n    Then the response status is 400\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-empty-data-table-cells</code> - applies the same rule to data tables.</li>\n  <li><code>no-empty-examples-cells</code> - applies the same rule to Examples tables.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-empty-examples-cells",
+      "name": "No Empty Examples Cells",
+      "severity": "MAJOR",
+      "type": "BUG",
+      "tags": [
+        "gherkin",
+        "suspicious"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-empty-examples-cells.md",
+      "sections": {
+        "root_cause": "<p>\n  Each data cell in an Examples table should contain a value. Empty cells\n  usually indicate incomplete test data and can result in placeholder\n  variables being substituted with empty strings. This may cause misleading\n  test results where steps silently pass with blank values instead of\n  testing meaningful data.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Product search\n\n  Scenario Outline: Search for products\n    Given the user is on the search page\n    When the user searches for \"&lt;product&gt;\"\n    Then \"&lt;count&gt;\" results are displayed\n\n    Examples:                                &lt;!-- Noncompliant --&gt;\n      | product  | count |\n      | laptop   |       |\n      | keyboard | 8     |\n</pre>\n<p>\n  The <code>count</code> cell in the first data row is empty. The\n  <code>&lt;count&gt;</code> placeholder will be substituted with an empty\n  string, which may cause the Then step to match incorrectly.\n</p>\n\n<h2>Exceptions</h2>\n<p>\n  This rule is off by default because some teams intentionally test with\n  empty values (e.g., form validation with blank fields). Enable it only\n  when empty cells always indicate incomplete test data in your project.\n  Header row cells are not checked - only data rows (index 1+). Data rows\n  shorter than the header are treated as having empty trailing cells.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Populate all data cells with meaningful values:</p>\n<pre>\nFeature: Product search\n\n  Scenario Outline: Search for products\n    Given the user is on the search page\n    When the user searches for \"&lt;product&gt;\"\n    Then \"&lt;count&gt;\" results are displayed\n\n    Examples:\n      | product  | count |\n      | laptop   | 15    |\n      | keyboard | 8     |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-empty-data-table-cells</code> - applies the same rule to data tables.</li>\n  <li><code>examples-column-coverage</code> - requires every column to be used by the outline.</li>\n  <li><code>examples-minimum-rows</code> - requires enough rows to be worth an outline.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-examples-tags",
+      "name": "No Examples Tags",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-examples-tags.md",
+      "sections": {
+        "root_cause": "<p>\n  Tags should not be placed on Examples sections. Tags should be placed on\n  Scenario Outlines instead. Tags on Examples sections are not meaningful\n  and should be moved up to the Scenario Outline level.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>Tags placed on Examples sections:</p>\n<pre>\nFeature: User login\n\n  Scenario Outline: User logs in with different credentials\n    Given the user navigates to login\n    When the user enters \"&lt;username&gt;\" and \"&lt;password&gt;\"\n    Then the user is authenticated\n\n    @smoke              &lt;!-- Noncompliant; tag on Examples --&gt;\n    Examples: Valid users\n      | username | password |\n      | alice    | secret   |\n      | bob      | secret   |\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Move tags to the Scenario Outline level:</p>\n<pre>\nFeature: User login\n\n  @smoke\n  Scenario Outline: User logs in with different credentials\n    Given the user navigates to login\n    When the user enters \"&lt;username&gt;\" and \"&lt;password&gt;\"\n    Then the user is authenticated\n\n    Examples: Valid users\n      | username | password |\n      | alice    | secret   |\n      | bob      | secret   |\n</pre>\n\n<p>\n  Note: Tags on Scenario Outlines apply to all Examples sections within that\n  outline, so there is no need to tag individual Examples sections.\n</p>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>tag-placement</code> - defines where tags belong.</li>\n  <li><code>rule-tag-placement</code> - defines where tags belong on Rule blocks.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-multiple-empty-lines",
+      "name": "No Multiple Empty Lines",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "1min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-multiple-empty-lines.md",
+      "sections": {
+        "root_cause": "<p>Feature files should not contain multiple consecutive blank lines.\nA single blank line is sufficient to separate structural elements (e.g., between\nscenarios or between a background and a scenario). Two or more consecutive blank\nlines add unnecessary visual noise and can indicate sloppy formatting.</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Order management\n\n  Scenario: Create order\n    Given a customer account\n    When the customer places an order\n    Then the order is created\n\n\n  <!-- Noncompliant: second consecutive blank line -->\n  Scenario: Cancel order\n    Given an existing order\n    When the customer cancels the order\n    Then the order is cancelled\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Order management\n\n  Scenario: Create order\n    Given a customer account\n    When the customer places an order\n    Then the order is created\n\n  Scenario: Cancel order\n    Given an existing order\n    When the customer cancels the order\n    Then the order is cancelled\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>blank-line-before-scenario</code> - ensures a blank line precedes each scenario.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-partially-commented-tag-lines",
+      "name": "No Partially Commented Tag Lines",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-partially-commented-tag-lines.md",
+      "sections": {
+        "root_cause": "<p>Tag lines (lines beginning with <code>@</code>) should not contain the <code>#</code>\ncharacter. In Gherkin, <code>#</code> starts a comment, but on a tag line the comment\nsyntax is ambiguous - the parser may treat everything after <code>#</code> as part\nof the last tag rather than as a comment. This leads to confusing behavior where\ntags appear to be \"commented out\" but are actually mangled into the preceding tag.</p>\n\n<p>If you need to disable a tag, move it to a dedicated comment line above the tag\nline, or remove it entirely.</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User management\n\n  @smoke @regression # temporarily disabled @slow <!-- Noncompliant -->\n  Scenario: Create user\n    Given an admin user\n    When a new user is created\n    Then the user appears in the list\n\n  @api #@deprecated <!-- Noncompliant -->\n  Scenario: Delete user\n    Given an existing user\n    When the user is deleted\n    Then the user is removed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: User management\n\n  # @slow tag temporarily removed\n  @smoke @regression\n  Scenario: Create user\n    Given an admin user\n    When a new user is created\n    Then the user appears in the list\n\n  @api\n  Scenario: Delete user\n    Given an existing user\n    When the user is deleted\n    Then the user is removed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>comment-format</code> - enforces consistent comment formatting.</li>\n  <li><code>no-restricted-tags</code> - flags tags from a restricted list.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-redundant-rule-tags",
+      "name": "No Redundant Rule Tags",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention",
+        "design"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-redundant-rule-tags.md",
+      "sections": {
+        "root_cause": "<p>\n  Scenario-level tags within a <code>Rule</code> block must not duplicate tags\n  already set on the enclosing <code>Rule</code>. Tags defined on a\n  <code>Rule</code> are inherited by all scenarios within that Rule, so\n  repeating them at the scenario level is redundant and should be removed.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Payment processing\n\n  @api-test\n  Rule: Credit card payments\n\n    @api-test                       <!-- Noncompliant -->\n    Scenario: Process Visa payment\n      Given the customer has a Visa card\n      When the customer pays with Visa\n      Then the payment is processed\n\n    Scenario: Process Mastercard payment\n      Given the customer has a Mastercard\n      When the customer pays with Mastercard\n      Then the payment is processed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Payment processing\n\n  @api-test\n  Rule: Credit card payments\n\n    Scenario: Process Visa payment\n      Given the customer has a Visa card\n      When the customer pays with Visa\n      Then the payment is processed\n\n    Scenario: Process Mastercard payment\n      Given the customer has a Mastercard\n      When the customer pays with Mastercard\n      Then the payment is processed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-redundant-tags</code> - flags scenario tags duplicating Feature-level or Rule-level tags</li>\n  <li><code>rule-tag-placement</code> - suggests moving common scenario tags to the Rule level</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-redundant-tags",
+      "name": "No Redundant Tags",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-redundant-tags.md",
+      "sections": {
+        "root_cause": "<p>\n  Scenario-level tags should not duplicate tags already set at the Feature level.\n  Tags defined at the Feature level automatically apply to all scenarios within\n  that feature. Repeating them at the scenario level is redundant and should be\n  removed to reduce duplication and improve maintainability.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>Scenario tags that duplicate feature-level tags:</p>\n<pre>\n@smoke @regression\nFeature: User authentication\n\n  @smoke              &lt;!-- Noncompliant; duplicates Feature-level tag --&gt;\n  Scenario: User logs in\n    Given the user navigates to login\n    When the user enters credentials\n    Then the user is authenticated\n\n  @regression         &lt;!-- Noncompliant; duplicates Feature-level tag --&gt;\n  Scenario: User logs out\n    Given the user is authenticated\n    When the user clicks logout\n    Then the user is logged out\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Remove redundant scenario-level tags:</p>\n<pre>\n@smoke @regression\nFeature: User authentication\n\n  Scenario: User logs in\n    Given the user navigates to login\n    When the user enters credentials\n    Then the user is authenticated\n\n  Scenario: User logs out\n    Given the user is authenticated\n    When the user clicks logout\n    Then the user is logged out\n</pre>\n\n<p>\n  Note: Tags that appear only at the scenario level (not at the Feature level)\n  are allowed and should remain. Rule-level tag redundancy is handled by the\n  companion rule <code>no-redundant-rule-tags</code>.\n</p>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-redundant-rule-tags</code> - flags scenario tags duplicating Rule-level tags</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-restricted-patterns",
+      "name": "No Restricted Patterns",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "10min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-restricted-patterns.md",
+      "sections": {
+        "root_cause": "<p>\n  Flags step text, scenario names, feature names, rule names, and descriptions\n  that match a configurable regular expression. This is a template rule - when\n  the pattern is empty (the default), the rule does nothing.\n</p>\n<p>\n  More general than <code>business-language-only</code>, this rule lets teams ban\n  project-specific anti-patterns such as hardcoded URLs, environment names,\n  SQL fragments, implementation details, or any other text that should not appear\n  in Gherkin specifications.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With <code>pattern</code> set to <code>https?://|SELECT\\s|INSERT\\s</code>:</p>\n<pre>\nFeature: User data retrieval\n\n  Scenario: Fetch user data  <!-- Noncompliant - step contains URL -->\n    Given the API at \"https://api.example.com/users\"\n    When the client sends a GET request\n    Then the response status is 200\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: User data retrieval\n\n  Scenario: Fetch user data\n    Given the users API endpoint\n    When the client sends a GET request\n    Then the response status is 200\n</pre>\n\n<h2>Configuration</h2>\n<table>\n  <tr>\n    <th>Parameter</th>\n    <th>Description</th>\n    <th>Default</th>\n  </tr>\n  <tr>\n    <td><code>pattern</code></td>\n    <td>\n      Regular expression to match against step text, names, and descriptions.\n      Uses <code>find()</code> semantics (partial match). Leave empty to disable the rule.\n    </td>\n    <td><em>(empty - rule inactive)</em></td>\n  </tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>business-language-only</code> - built-in check for common implementation terms.</li>\n  <li><code>no-restricted-tags</code> - restricts specific tag names.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-restricted-tags",
+      "name": "No Restricted Tags",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-restricted-tags.md",
+      "sections": {
+        "root_cause": "<p>Certain tags are intended for local development only and should not be committed\nto the repository. Tags like <code>@wip</code>, <code>@debug</code>, <code>@ignore</code>,\nand <code>@manual</code> are common examples that indicate work-in-progress or temporary\nstates. This rule flags any tag whose name (without the leading <code>@</code>) appears\nin a configurable restricted list.</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Payment processing\n\n  @wip <!-- Noncompliant -->\n  Scenario: Process credit card payment\n    Given a valid credit card\n    When the payment is submitted\n    Then the payment is approved\n\n  @debug @smoke <!-- Noncompliant on @debug only -->\n  Scenario: Process refund\n    Given a completed payment\n    When a refund is requested\n    Then the refund is processed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Payment processing\n\n  @smoke\n  Scenario: Process credit card payment\n    Given a valid credit card\n    When the payment is submitted\n    Then the payment is approved\n\n  @smoke\n  Scenario: Process refund\n    Given a completed payment\n    When a refund is requested\n    Then the refund is processed\n</pre>\n\n<h2>Configuration</h2>\n<table>\n  <thead>\n    <tr><th>Parameter</th><th>Description</th><th>Default</th></tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td><code>restrictedTags</code></td>\n      <td>Comma-separated list of restricted tag names (without leading <code>@</code>).</td>\n      <td><code>wip,debug,ignore,manual</code></td>\n    </tr>\n  </tbody>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>required-tags</code> - requires at least one tag matching a pattern.</li>\n  <li><code>tag-name-pattern</code> - validates tag naming conventions.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-star-step-prefix",
+      "name": "No Star Step Prefix",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-star-step-prefix.md",
+      "sections": {
+        "root_cause": "<p>\n  Steps should not use the <code>*</code> (asterisk) keyword prefix. While\n  the asterisk is valid Gherkin syntax and acts as a wildcard step keyword,\n  it obscures the intent of the step. Using explicit keywords like\n  <code>Given</code>, <code>When</code>, <code>Then</code>, <code>And</code>,\n  or <code>But</code> makes each step's purpose immediately clear to readers.\n</p>\n\n<p>\n  <strong>Note:</strong> The <code>*</code> prefix is explicitly endorsed by\n  the Gherkin specification as valid syntax for bullet-point-style steps.\n  This rule is an <em>opinionated style preference</em>, not a correctness\n  check. Teams that use <code>*</code> steps intentionally (e.g., for\n  free-form step lists) can safely deactivate this rule. This rule is not\n  active in the default quality profile.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Order management\n\n  Scenario: Place an order\n    Given the customer has an active account\n    * the customer has items in the cart              &lt;!-- Noncompliant --&gt;\n    When the customer clicks checkout\n    * the customer confirms the order                 &lt;!-- Noncompliant --&gt;\n    Then the order is placed successfully\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Order management\n\n  Scenario: Place an order\n    Given the customer has an active account\n    And the customer has items in the cart\n    When the customer clicks checkout\n    And the customer confirms the order\n    Then the order is placed successfully\n</pre>",
+        "resources": "<h2>See Also</h2>\n<p>\n  The <code>no-unknown-step-type</code> rule separately flags steps whose\n  semantic type cannot be determined (including <code>*</code> steps that\n  are the first step in a scenario). This rule focuses solely on the\n  literal keyword, while <code>no-unknown-step-type</code> handles the\n  semantic classification concern.\n</p>"
+      }
+    },
+    {
+      "key": "no-tab-characters",
+      "name": "No Tab Characters",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-tab-characters.md",
+      "sections": {
+        "root_cause": "<p>\n  Gherkin files should not contain tab characters for indentation or anywhere\n  else in the file. Tabs display differently depending on the editor, terminal,\n  and viewer settings, leading to inconsistent alignment across team members'\n  environments. Using spaces instead of tabs guarantees that files look the\n  same everywhere.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>Lines indented with tab characters:</p>\n<pre>\nFeature: Invoice generation\n\n&#9;Scenario: Generate monthly invoice               &lt;!-- Noncompliant --&gt;\n&#9;&#9;Given the billing cycle has ended             &lt;!-- Noncompliant --&gt;\n&#9;&#9;When the system generates the invoice\n&#9;&#9;Then the invoice is sent to the customer\n</pre>\n\n<h2>Notes</h2>\n<p>\n  Most modern editors can be configured to insert spaces when the Tab key is\n  pressed. Enable this setting in your editor to avoid accidentally introducing\n  tab characters. If your project uses an <code>.editorconfig</code> file, set\n  <code>indent_style = space</code> to enforce spaces project-wide.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Use spaces for all indentation:</p>\n<pre>\nFeature: Invoice generation\n\n  Scenario: Generate monthly invoice\n    Given the billing cycle has ended\n    When the system generates the invoice\n    Then the invoice is sent to the customer\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>consistent-indentation</code> - requires indentation to follow nesting level.</li>\n  <li><code>no-trailing-whitespace</code> - removes invisible characters at the end of a line.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-trailing-whitespace",
+      "name": "No Trailing Whitespace",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "1min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-trailing-whitespace.md",
+      "sections": {
+        "root_cause": "<p>\n  Lines in Gherkin files should not end with trailing whitespace. Trailing\n  spaces and tabs are invisible to most readers but can create noise in\n  version control diffs, cause unexpected merge conflicts, and make files\n  larger than necessary. Many editors can be configured to strip trailing\n  whitespace automatically on save.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>Lines ending with trailing spaces (shown with <code>·</code>):</p>\n<pre>\nFeature: Payment processing··                        &lt;!-- Noncompliant --&gt;\n\n  Scenario: Process credit card payment···            &lt;!-- Noncompliant --&gt;\n    Given the customer has items in the cart\n    When the customer pays with a credit card··       &lt;!-- Noncompliant --&gt;\n    Then the payment is processed\n</pre>\n\n<h2>Notes</h2>\n<p>\n  Most IDEs provide a \"trim trailing whitespace on save\" option. Enabling\n  this setting ensures that trailing whitespace is removed automatically.\n  You can also use an <code>.editorconfig</code> file with\n  <code>trim_trailing_whitespace = true</code> to enforce this across the team.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Payment processing\n\n  Scenario: Process credit card payment\n    Given the customer has items in the cart\n    When the customer pays with a credit card\n    Then the payment is processed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-tab-characters</code> - tabs render at different widths and break alignment.</li>\n  <li><code>newline-at-end-of-file</code> - requires a trailing newline.</li>\n  <li><code>no-multiple-empty-lines</code> - limits consecutive blank lines.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-unknown-step-type",
+      "name": "No Unknown Step Type",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "suspicious"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-unknown-step-type.md",
+      "sections": {
+        "root_cause": "<p>\n  Steps should not have an <code>UNKNOWN</code> keyword type. This typically\n  occurs when the <code>*</code> (asterisk) prefix is used instead of an\n  explicit keyword like <code>Given</code>, <code>When</code>,\n  <code>Then</code>, <code>And</code>, or <code>But</code>. The parser\n  cannot determine the semantic role of such steps, making the scenario\n  harder to understand and analyse.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Order management\n\n  Scenario: Place an order\n    Given the customer has an active account\n    * the customer performs an action                    &lt;!-- Noncompliant --&gt;\n    Then the order is placed successfully\n</pre>\n\n<h2>Notes</h2>\n<p>\n  This rule is related to <code>no-star-step-prefix</code> but focuses on\n  the parsed keyword type rather than the literal prefix character. Both\n  rules help enforce clear, explicit step classification.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Order management\n\n  Scenario: Place an order\n    Given the customer has an active account\n    When the customer performs an action\n    Then the order is placed successfully\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-star-step-prefix</code> - rejects the asterisk step prefix that causes this.</li>\n  <li><code>prefer-and-but-keywords</code> - gives repeated steps a meaningful keyword.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "no-unused-variables",
+      "name": "No Unused Variables",
+      "severity": "MAJOR",
+      "type": "BUG",
+      "tags": [
+        "gherkin",
+        "unused",
+        "suspicious"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/no-unused-variables.md",
+      "sections": {
+        "root_cause": "<p>\n  All columns in an <code>Examples</code> table should be referenced as\n  <code>&lt;variable&gt;</code> placeholders in at least one step of the\n  owning <code>Scenario Outline</code>. References are collected from step\n  sentence text, doc string content, and data table cells, and a column\n  used anywhere in the outline counts as used for every Examples section.\n  Unreferenced columns represent dead test data that add noise and can\n  confuse readers about which values actually drive the test.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User registration\n\n  Scenario Outline: Register a new user\n    Given the registration form is displayed\n    When the user registers as a &lt;role&gt;\n    Then the account is created\n\n    Examples:                                &lt;!-- Noncompliant: \"unused\" column not referenced --&gt;\n      | role    | unused   |\n      | admin   | foo      |\n      | editor  | bar      |\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Remove unreferenced columns from the Examples table:</p>\n<pre>\nFeature: User registration\n\n  Scenario Outline: Register a new user\n    Given the registration form is displayed\n    When the user registers as a &lt;role&gt;\n    Then the account is created\n\n    Examples:\n      | role    |\n      | admin   |\n      | editor  |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>examples-column-coverage</code> &mdash; Steps must not reference variables missing from the Examples table</li>\n</ul>"
+      }
+    },
+    {
+      "key": "one-space-between-tags",
+      "name": "One Space Between Tags",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "1min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/one-space-between-tags.md",
+      "sections": {
+        "root_cause": "<p>Tag lines should have exactly one space between consecutive <code>@</code>-prefixed\ntokens. Multiple spaces or tabs between tags make the tag line harder to read and\ncreate inconsistent formatting across the feature file.</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Search functionality\n\n  @smoke  @regression <!-- Noncompliant: two spaces between tags -->\n  Scenario: Basic search\n    Given the search page is loaded\n    When the user searches for \"test\"\n    Then results are displayed\n\n  @smoke    @integration    @api <!-- Noncompliant: multiple spaces -->\n  Scenario: Advanced search\n    Given the search page is loaded\n    When the user applies filters\n    Then filtered results are displayed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Search functionality\n\n  @smoke @regression\n  Scenario: Basic search\n    Given the search page is loaded\n    When the user searches for \"test\"\n    Then results are displayed\n\n  @smoke @integration @api\n  Scenario: Advanced search\n    Given the search page is loaded\n    When the user applies filters\n    Then filtered results are displayed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-trailing-whitespace</code> - removes trailing whitespace from all lines.</li>\n  <li><code>tag-name-pattern</code> - validates tag naming conventions.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "outline-placeholder-required",
+      "name": "Outline Placeholder Required",
+      "severity": "MAJOR",
+      "type": "BUG",
+      "tags": [
+        "gherkin",
+        "suspicious"
+      ],
+      "remediation": "10min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/outline-placeholder-required.md",
+      "sections": {
+        "root_cause": "<p>\n  <code>Scenario Outline</code> (or <code>Scenario Template</code>) is designed to parameterize\n  test execution by substituting <code>&lt;placeholder&gt;</code> variables from the\n  <code>Examples</code> table into step text. A Scenario Outline that never references any\n  placeholder variable runs the same identical steps for every data row, which is almost\n  certainly a mistake - either placeholders were forgotten or a plain <code>Scenario</code>\n  should be used instead.\n</p>\n<p>\n  This rule checks step text, the scenario name, and the scenario description for at least\n  one <code>&lt;variable&gt;</code> reference. If none are found, the rule reports an issue.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User login\n\n  Scenario Outline: Successful login  <!-- Noncompliant - no placeholders used -->\n    Given a registered user\n    When the user logs in with valid credentials\n    Then the user sees the dashboard\n\n    Examples:\n      | username | password |\n      | alice    | secret1  |\n      | bob      | secret2  |\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: User login\n\n  Scenario Outline: Successful login for &lt;username&gt;\n    Given a registered user named &lt;username&gt;\n    When the user logs in with password &lt;password&gt;\n    Then the user sees the dashboard\n\n    Examples:\n      | username | password |\n      | alice    | secret1  |\n      | bob      | secret2  |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>scenario-outline-requires-examples</code> - ensures Scenario Outlines have an Examples section.</li>\n  <li><code>no-unused-variables</code> - ensures Examples columns are referenced in steps.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "outline-single-example-row",
+      "name": "Outline Single Example Row",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention",
+        "pitfall"
+      ],
+      "remediation": "10min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/outline-single-example-row.md",
+      "sections": {
+        "root_cause": "<p>\n  A <code>Scenario Outline</code> where every <code>Examples</code> section has only one data row\n  is functionally identical to a plain <code>Scenario</code> with hardcoded values. The\n  parameterization syntax adds structural complexity without providing any variation benefit.\n  Consider converting such outlines to plain <code>Scenario</code> blocks.\n</p>\n<p>\n  This is different from the <code>examples-minimum-rows</code> rule, which catches\n  <code>Examples</code> sections with zero data rows. This rule targets outlines that\n  technically work but gain nothing from parameterization.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nScenario Outline: User logs in  <!-- Noncompliant -->\n  Given the user navigates to the login page\n  When the user enters \"&lt;username&gt;\" and \"&lt;password&gt;\"\n  Then the user should see the dashboard\n\n  Examples:\n    | username | password |\n    | admin    | secret   |\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nScenario: User logs in\n  Given the user navigates to the login page\n  When the user enters \"admin\" and \"secret\"\n  Then the user should see the dashboard\n</pre>\n<p>Or add more data rows to justify the Outline:</p>\n<pre>\nScenario Outline: User logs in\n  Given the user navigates to the login page\n  When the user enters \"&lt;username&gt;\" and \"&lt;password&gt;\"\n  Then the user should see the dashboard\n\n  Examples:\n    | username | password  |\n    | admin    | secret    |\n    | editor   | editPass  |\n    | viewer   | viewPass  |\n</pre>\n\n<h2>Configuration</h2>\n<table>\n  <tr>\n    <th>Parameter</th>\n    <th>Description</th>\n    <th>Default</th>\n  </tr>\n  <tr>\n    <td><code>maxDataRows</code></td>\n    <td>Maximum data rows per Examples section that triggers the issue (all Examples must be at or below this threshold).</td>\n    <td><code>1</code></td>\n  </tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>examples-minimum-rows</code> - catches Examples sections with zero data rows.</li>\n  <li><code>use-scenario-outline-for-examples</code> - suggests converting duplicate Scenarios into Outlines.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "parse-error",
+      "name": "Parse Error",
+      "severity": "CRITICAL",
+      "type": "BUG",
+      "tags": [
+        "gherkin",
+        "suspicious"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/parse-error.md",
+      "sections": {
+        "root_cause": "<p>\n  Feature files must be valid Gherkin that the parser can process without\n  errors. When a file cannot be parsed, an issue is raised at the location\n  of the parse error. This typically indicates a syntax mistake such as a\n  missing keyword, misplaced table, or unrecognised structure.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User login\n\n  Scenario: Login with valid credentials\n    the user has a valid account                         &lt;!-- Noncompliant: missing step keyword --&gt;\n    When the user logs in\n    Then the user sees the dashboard\n</pre>\n\n<h2>Notes</h2>\n<p>\n  This rule is a <em>marker</em> rule. Issues are created by the sensor\n  when parsing fails &mdash; the check class itself does not visit the AST.\n  Fixing the parse error in the feature file resolves the issue.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: User login\n\n  Scenario: Login with valid credentials\n    Given the user has a valid account\n    When the user logs in\n    Then the user sees the dashboard\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>feature-file-required</code> - requires the file to contain a Feature.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "prefer-and-but-keywords",
+      "name": "Prefer And/But Keywords",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/prefer-and-but-keywords.md",
+      "sections": {
+        "root_cause": "<p>\n  When multiple consecutive steps share the same semantic type (context, action,\n  or outcome), subsequent steps should use <code>And</code> or <code>But</code>\n  instead of repeating the primary keyword (<code>Given</code>, <code>When</code>,\n  or <code>Then</code>). Repeating the same keyword obscures the logical\n  structure and makes the scenario harder to read.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Shopping cart\n\n  Scenario: Add items to cart\n    Given the customer has an active session\n    Given the customer has an empty cart              &lt;!-- Noncompliant --&gt;\n    When the customer adds \"Widget\" to the cart\n    When the customer adds \"Gadget\" to the cart       &lt;!-- Noncompliant --&gt;\n    Then the cart contains 2 items\n    Then the cart total reflects both items            &lt;!-- Noncompliant --&gt;\n</pre>\n\n<h2>Notes</h2>\n<p>\n  <code>And</code> and <code>But</code> are conjunction keywords that inherit\n  the type of the preceding primary keyword. Using them clarifies that the\n  step is a continuation of the same category rather than a separate concern.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Shopping cart\n\n  Scenario: Add items to cart\n    Given the customer has an active session\n    And the customer has an empty cart\n    When the customer adds \"Widget\" to the cart\n    And the customer adds \"Gadget\" to the cart\n    Then the cart contains 2 items\n    And the cart total reflects both items\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>no-star-step-prefix</code> - rejects the asterisk step prefix.</li>\n  <li><code>step-order-given-when-then</code> - keeps the three step types in order.</li>\n  <li><code>no-unknown-step-type</code> - flags steps whose keyword has no recognised type.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "required-tags",
+      "name": "Required Tags",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/required-tags.md",
+      "sections": {
+        "root_cause": "<p>Every <code>Scenario</code> and <code>Scenario Outline</code> should have at least\none tag matching a configurable regular expression pattern. This rule is useful for\nteams that require categorization tags (e.g., <code>@smoke</code>, <code>@regression</code>)\non every scenario to ensure proper test suite organization and selective execution.</p>\n<p>\n  <strong>Note:</strong> Tags inherited from the enclosing Feature and Rule are\n  considered when matching the pattern. A scenario without a matching tag of its\n  own is compliant when its Feature or Rule carries a matching tag.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User login\n\n  <!-- Noncompliant: scenario has no tags matching \"smoke|regression\" -->\n  Scenario: Successful login\n    Given a registered user\n    When the user logs in with valid credentials\n    Then the user sees the dashboard\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: User login\n\n  @smoke\n  Scenario: Successful login\n    Given a registered user\n    When the user logs in with valid credentials\n    Then the user sees the dashboard\n</pre>\n\n<h2>Configuration</h2>\n<table>\n  <thead>\n    <tr><th>Parameter</th><th>Description</th><th>Default</th></tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td><code>pattern</code></td>\n      <td>Regular expression that at least one tag must match (without the leading <code>@</code>).\n          The default <code>.*</code> matches everything, so the rule is effectively inactive\n          unless configured with a meaningful pattern.</td>\n      <td><code>.*</code></td>\n    </tr>\n  </tbody>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>tag-name-pattern</code> - validates individual tag naming conventions.</li>\n  <li><code>no-restricted-tags</code> - flags tags from a restricted list.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "rule-description-recommended",
+      "name": "Rule Description Recommended",
+      "severity": "INFO",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention",
+        "design"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/rule-description-recommended.md",
+      "sections": {
+        "root_cause": "<p>\n  <code>Rule</code> blocks should include a description explaining the business\n  rule they represent. The <code>Rule</code> keyword was introduced in Gherkin 6\n  specifically to group scenarios under business rules. A description below the\n  Rule name provides valuable context about acceptance criteria and business\n  intent, helping stakeholders understand why the rule exists.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Loyalty Program\n\n  Rule: Points accumulation                       &lt;!-- Noncompliant --&gt;\n    Scenario: Earn points on purchase\n      Given a loyalty member\n      When they make a purchase of $50\n      Then they earn 50 points\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Add a description that explains the business rule:</p>\n<pre>\nFeature: Loyalty Program\n\n  Rule: Points accumulation\n    Customers earn 1 point per dollar spent on qualifying purchases.\n    Points are credited within 24 hours of the transaction.\n\n    Scenario: Earn points on purchase\n      Given a loyalty member\n      When they make a purchase of $50\n      Then they earn 50 points\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>rule-name-required</code> &mdash; Rule blocks must have a name</li>\n  <li><code>feature-description-recommended</code> &mdash; Similar check for Feature descriptions</li>\n</ul>"
+      }
+    },
+    {
+      "key": "rule-name-required",
+      "name": "Rule Name Required",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention",
+        "design"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/rule-name-required.md",
+      "sections": {
+        "root_cause": "<p>\n  Every <code>Rule</code> block must have a non-empty name. The <code>Rule</code>\n  keyword (introduced in Gherkin 6) groups scenarios under a business rule within\n  a Feature. A Rule without a name fails to document which business rule is being\n  validated, making test reports and documentation unreadable.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Online Shopping\n\n  Rule:                                           &lt;!-- Noncompliant --&gt;\n    Scenario: Add item to cart\n      Given the customer is browsing products\n      When the customer adds \"Laptop\" to the cart\n      Then the cart should contain 1 item\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Provide a meaningful name that describes the business rule:</p>\n<pre>\nFeature: Online Shopping\n\n  Rule: Cart management\n    Scenario: Add item to cart\n      Given the customer is browsing products\n      When the customer adds \"Laptop\" to the cart\n      Then the cart should contain 1 item\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>rule-description-recommended</code> &mdash; Rules should also include a description</li>\n  <li><code>unique-rule-name</code> &mdash; Rule names must be unique within a Feature</li>\n  <li><code>feature-name-required</code> &mdash; Similar check for Feature names</li>\n</ul>"
+      }
+    },
+    {
+      "key": "rule-scenario-count-limit",
+      "name": "Rule Scenario Count Limit",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention",
+        "design"
+      ],
+      "remediation": "15min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/rule-scenario-count-limit.md",
+      "sections": {
+        "root_cause": "<p>\n  <code>Rule</code> blocks should not exceed a configurable number of scenarios.\n  Too many scenarios under a single <code>Rule</code> suggest the business rule\n  is too broad and should be decomposed into smaller, more focused rules.\n  The default limit is <strong>10</strong> scenarios per <code>Rule</code> block.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Payment processing\n\n  Rule: Credit card payments\n    # This Rule has too many scenarios (11 &gt; 10)\n\n    Scenario: Scenario 1           <!-- Noncompliant -->\n      Given ...\n    Scenario: Scenario 2\n      Given ...\n    # ... 9 more scenarios ...\n    Scenario: Scenario 11\n      Given ...\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Payment processing\n\n  Rule: Visa payments\n    Scenario: Process Visa payment\n      Given ...\n    Scenario: Decline expired Visa\n      Given ...\n\n  Rule: Mastercard payments\n    Scenario: Process Mastercard payment\n      Given ...\n    Scenario: Decline expired Mastercard\n      Given ...\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>maxScenarios</code> parameter sets the maximum allowed scenarios\n  per <code>Rule</code> block. Default value: <strong>10</strong>.\n</p>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>scenario-count-limit</code> - limits scenarios per Feature</li>\n  <li><code>rule-scenario-required</code> - ensures Rules have at least one scenario</li>\n</ul>"
+      }
+    },
+    {
+      "key": "rule-scenario-required",
+      "name": "Rule Scenario Required",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention",
+        "design"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/rule-scenario-required.md",
+      "sections": {
+        "root_cause": "<p>\n  Every <code>Rule</code> block must contain at least one <code>Scenario</code>\n  or <code>Example</code>. A <code>Rule</code> block without any scenarios\n  serves no purpose &mdash; it declares a business rule but provides no test\n  coverage to validate it. This is almost always an incomplete implementation\n  or a placeholder that was never filled in.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Payment Processing\n\n  Rule: Refund policy                             &lt;!-- Noncompliant --&gt;\n    Background:\n      Given the store has a 30-day refund policy\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Add at least one Scenario to the Rule block:</p>\n<pre>\nFeature: Payment Processing\n\n  Rule: Refund policy\n    Background:\n      Given the store has a 30-day refund policy\n\n    Scenario: Refund within 30 days\n      When a customer requests a refund within 30 days\n      Then the refund is approved\n\n    Scenario: Refund after 30 days\n      When a customer requests a refund after 30 days\n      Then the refund is denied\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>scenario-required</code> &mdash; Similar check at the Feature level</li>\n  <li><code>rule-name-required</code> &mdash; Rule blocks must have a name</li>\n</ul>"
+      }
+    },
+    {
+      "key": "rule-tag-placement",
+      "name": "Rule Tag Placement",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/rule-tag-placement.md",
+      "sections": {
+        "root_cause": "<p>\n  Tags common to all scenarios within a <code>Rule</code> block should be moved\n  to the <code>Rule</code> level instead of being repeated on each scenario.\n  This reduces duplication and makes it clear that the tag applies to all\n  scenarios within the Rule.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Payment processing\n\n  Rule: Credit card payments\n\n    @api-test           &lt;!-- Noncompliant: repeated on every scenario; move to Rule level --&gt;\n    Scenario: Process Visa payment\n      Given the customer has a Visa card\n      When the customer pays with Visa\n      Then the payment is processed\n\n    @api-test\n    Scenario: Process Mastercard payment\n      Given the customer has a Mastercard\n      When the customer pays with Mastercard\n      Then the payment is processed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Payment processing\n\n  @api-test\n  Rule: Credit card payments\n\n    Scenario: Process Visa payment\n      Given the customer has a Visa card\n      When the customer pays with Visa\n      Then the payment is processed\n\n    Scenario: Process Mastercard payment\n      Given the customer has a Mastercard\n      When the customer pays with Mastercard\n      Then the payment is processed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>tag-placement</code> - suggests moving common tags to Feature or Rule level</li>\n  <li><code>no-redundant-rule-tags</code> - flags scenario tags duplicating Rule-level tags</li>\n</ul>"
+      }
+    },
+    {
+      "key": "scenario-count-limit",
+      "name": "Scenario Count Limit",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "15min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/scenario-count-limit.md",
+      "sections": {
+        "root_cause": "<p>\n  Features should not exceed a configurable number of scenarios. A feature\n  file with too many scenarios becomes difficult to navigate, understand,\n  and maintain. Large features often indicate that the file covers multiple\n  business capabilities that should be split into separate, more focused\n  feature files. Scenarios nested inside <code>Rule:</code> blocks count\n  toward the feature total.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With the default limit of 12 scenarios:</p>\n<pre>\nFeature: Complete e-commerce workflow            &lt;!-- Noncompliant --&gt;\n\n  Scenario: Browse product catalog\n    ...\n  Scenario: Search for a product\n    ...\n  Scenario: View product details\n    ...\n  Scenario: Add product to cart\n    ...\n  Scenario: Update cart quantity\n    ...\n  Scenario: Remove product from cart\n    ...\n  Scenario: Apply discount code\n    ...\n  Scenario: Calculate shipping cost\n    ...\n  Scenario: Select payment method\n    ...\n  Scenario: Process credit card payment\n    ...\n  Scenario: Process bank transfer\n    ...\n  Scenario: Confirm order\n    ...\n  Scenario: Cancel order\n    ...\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Split the feature into smaller, domain-specific features:</p>\n<pre>\nFeature: Product browsing\n  Scenario: Browse product catalog\n    ...\n  Scenario: Search for a product\n    ...\n  Scenario: View product details\n    ...\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>maxScenarios</code> parameter controls the maximum number of\n  scenarios allowed in a single Feature. The default value is <strong>12</strong>.\n</p>\n<table>\n  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>\n  <tr><td><code>maxScenarios</code></td><td>int</td><td>12</td></tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>feature-file-max-lines</code> - limits overall file size.</li>\n  <li><code>rule-scenario-count-limit</code> - applies the same limit inside a Rule block.</li>\n  <li><code>step-count-limit</code> - limits the number of steps in a single scenario.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "scenario-description-recommended",
+      "name": "Scenario Description Recommended",
+      "severity": "INFO",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/scenario-description-recommended.md",
+      "sections": {
+        "root_cause": "<p>\n  Scenarios should include a description explaining their purpose,\n  acceptance criteria, or business context. A description below the\n  Scenario name provides valuable context about why this test exists\n  and what business outcome it verifies. Without it, readers must\n  infer the purpose from the step sequence alone, which is more\n  difficult and error-prone.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User authentication\n\n  Scenario: Successful login                 &lt;!-- Noncompliant --&gt;\n    Given the user is on the login page\n    When the user enters valid credentials\n    Then the user is redirected to the dashboard\n\n  Scenario Outline: Login with different roles  &lt;!-- Noncompliant --&gt;\n    Given the user is on the login page\n    When the user logs in as \"&lt;role&gt;\"\n    Then the user sees the \"&lt;dashboard&gt;\" dashboard\n\n    Examples:\n      | role  | dashboard |\n      | admin | admin     |\n      | user  | user      |\n</pre>\n\n<h2>Exceptions</h2>\n<p>\n  This rule is off by default because many teams prefer concise\n  scenarios where the name is sufficient to convey the purpose.\n  Enable it to encourage more thorough documentation of test intent.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Add a description below the Scenario name:</p>\n<pre>\nFeature: User authentication\n\n  Scenario: Successful login\n    Verifies that a user with valid credentials can successfully\n    log in to the system and is redirected to the dashboard.\n\n    Given the user is on the login page\n    When the user enters valid credentials\n    Then the user is redirected to the dashboard\n\n  Scenario Outline: Login with different roles\n    Tests login behaviour across different user roles to ensure\n    proper access control and dashboard routing.\n\n    Given the user is on the login page\n    When the user logs in as \"&lt;role&gt;\"\n    Then the user sees the \"&lt;dashboard&gt;\" dashboard\n\n    Examples:\n      | role  | dashboard |\n      | admin | admin     |\n      | user  | user      |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>feature-description-recommended</code> - applies the same guidance to Features.</li>\n  <li><code>rule-description-recommended</code> - applies the same guidance to Rule blocks.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "scenario-name-required",
+      "name": "Scenario Name Required",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/scenario-name-required.md",
+      "sections": {
+        "root_cause": "<p>\n  Every <code>Scenario</code> and <code>Scenario Outline</code> must have\n  a non-empty name. Scenario names appear in test reports and are the\n  primary way team members identify which business behaviour is being tested.\n  An unnamed scenario makes test results confusing and hinders debugging\n  when a test fails.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Inventory management\n\n  Scenario:                                     &lt;!-- Noncompliant --&gt;\n    Given the warehouse has 50 units of product \"Widget A\"\n    When 10 units are shipped to the retail store\n    Then the warehouse should have 40 units remaining\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Provide a descriptive name that explains the business behaviour:</p>\n<pre>\nFeature: Inventory management\n\n  Scenario: Shipping reduces warehouse stock\n    Given the warehouse has 50 units of product \"Widget A\"\n    When 10 units are shipped to the retail store\n    Then the warehouse should have 40 units remaining\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>feature-name-required</code> &mdash; Features must also have a non-empty name</li>\n  <li><code>unique-scenario-name</code> &mdash; Scenario names must be unique</li>\n</ul>"
+      }
+    },
+    {
+      "key": "scenario-outline-requires-examples",
+      "name": "Scenario Outline Requires Examples",
+      "severity": "MAJOR",
+      "type": "BUG",
+      "tags": [
+        "gherkin",
+        "suspicious"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/scenario-outline-requires-examples.md",
+      "sections": {
+        "root_cause": "<p>\n  A <code>Scenario Outline</code> (or <code>Scenario Template</code>) is designed to be\n  parameterized via an <code>Examples</code> table. Without at least one <code>Examples</code>\n  section, the outline produces zero test iterations at runtime - the steps are never executed.\n  This is always a defect: either the <code>Examples</code> table was accidentally omitted,\n  or the scenario should be written as a plain <code>Scenario</code>.\n</p>\n<p>\n  This rule uses language-aware keyword matching to correctly detect Scenario Outline keywords\n  in all supported Gherkin languages (e.g., German <code>Szenariogrundriss</code>, French\n  <code>Plan du Scénario</code>).\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User registration\n\n  Scenario Outline: Register with valid data  <!-- Noncompliant - missing Examples -->\n    Given the user fills in the registration form\n    When the user submits the form\n    Then the account is created\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: User registration\n\n  Scenario Outline: Register with &lt;role&gt; role\n    Given the user fills in the registration form as &lt;role&gt;\n    When the user submits the form\n    Then the account is created with role &lt;role&gt;\n\n    Examples:\n      | role    |\n      | admin   |\n      | editor  |\n      | viewer  |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>outline-placeholder-required</code> - ensures Scenario Outlines actually reference placeholders.</li>\n  <li><code>use-scenario-outline-for-examples</code> - ensures Examples appear only in Scenario Outlines.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "scenario-required",
+      "name": "Scenario Required",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/scenario-required.md",
+      "sections": {
+        "root_cause": "<p>\n  Every <code>Feature</code> must contain at least one <code>Scenario</code>\n  or <code>Scenario Outline</code>. A Feature without any scenarios provides\n  no test coverage and serves no purpose in a test suite. Scenarios may be\n  defined directly under the Feature or within <code>Rule</code> sections.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Payment processing                     &lt;!-- Noncompliant --&gt;\n  The payment system handles credit card and bank transfer payments.\n\n  Background:\n    Given the merchant account is active\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Add at least one Scenario to the Feature:</p>\n<pre>\nFeature: Payment processing\n  The payment system handles credit card and bank transfer payments.\n\n  Background:\n    Given the merchant account is active\n\n  Scenario: Process a credit card payment\n    When a customer submits a credit card payment of $100\n    Then the payment is authorized\n    And the merchant receives a confirmation\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>feature-file-required</code> &mdash; Files must contain a Feature definition</li>\n  <li><code>step-required</code> &mdash; Scenarios must contain at least one step</li>\n</ul>"
+      }
+    },
+    {
+      "key": "shared-given-to-background",
+      "name": "Shared Given to Background",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "15min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/shared-given-to-background.md",
+      "sections": {
+        "root_cause": "<p>\n  Given steps that are repeated across all scenarios in a container (Feature or\n  Rule) should be moved to the Background section of that container. This reduces\n  duplication, improves maintainability, and makes it clear which preconditions\n  are shared. The analysis is scoped independently per container: Feature-level\n  scenarios are checked against the Feature-level Background, and scenarios within\n  a <code>Rule</code> block are checked against the Rule-level Background.\n</p>\n\n<p>\n  Only the common <em>leading</em> Given steps &mdash; those shared, in the same\n  order, from the start of every scenario &mdash; are flagged, because only a\n  contiguous leading block can be hoisted without changing execution order. As\n  soon as the steps diverge at a position, no later step is reported even if it\n  happens to match. When a Background already exists, leading Given steps that\n  are not yet part of it are still flagged so they can be moved into it. Steps\n  are compared including any attached data table or doc string, so identical\n  text with different attached data is not considered common. In a\n  <code>Scenario Outline</code>, a Given step containing a\n  <code>&lt;placeholder&gt;</code> ends the leading block, since its effective\n  value varies per Examples row and steps after it cannot be hoisted.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Online shopping cart\n\n  Scenario: Add item to cart\n    Given the customer is logged in\n    And the product catalog is available\n    When the customer adds \"Laptop\" to the cart\n    Then the cart contains 1 item\n\n  Scenario: Remove item from cart\n    Given the customer is logged in\n    And the product catalog is available\n    When the customer removes \"Laptop\" from the cart\n    Then the cart is empty\n\n  Rule: Bulk orders                     &lt;!-- Noncompliant within this Rule --&gt;\n\n    Scenario: Add bulk items\n      Given the customer is a wholesale buyer\n      When the customer adds 100 units\n      Then the cart contains 100 items\n\n    Scenario: Apply bulk discount\n      Given the customer is a wholesale buyer\n      When the system calculates the total\n      Then a bulk discount is applied\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Extract common Given steps to Background at each scope:</p>\n<pre>\nFeature: Online shopping cart\n\n  Background:\n    Given the customer is logged in\n    And the product catalog is available\n\n  Scenario: Add item to cart\n    When the customer adds \"Laptop\" to the cart\n    Then the cart contains 1 item\n\n  Scenario: Remove item from cart\n    When the customer removes \"Laptop\" from the cart\n    Then the cart is empty\n\n  Rule: Bulk orders\n\n    Background:\n      Given the customer is a wholesale buyer\n\n    Scenario: Add bulk items\n      When the customer adds 100 units\n      Then the cart contains 100 items\n\n    Scenario: Apply bulk discount\n      When the system calculates the total\n      Then a bulk discount is applied\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>background-given-only</code> &mdash; Background sections must only contain Given steps</li>\n  <li><code>no-duplicate-steps</code> &mdash; Steps within a scenario must not be duplicated</li>\n</ul>"
+      }
+    },
+    {
+      "key": "single-when-per-scenario",
+      "name": "Single When per Scenario",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "15min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/single-when-per-scenario.md",
+      "sections": {
+        "root_cause": "<p>\n  Each scenario should contain exactly one <code>When</code> step. A scenario\n  should test a single action or event, and multiple <code>When</code> steps\n  indicate that the scenario is testing multiple behaviours. Scenarios with\n  multiple <code>When</code> steps are harder to understand, maintain, and\n  debug when they fail, as it becomes unclear which action caused the failure.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User profile management\n\n  Scenario: Update profile and change password    &lt;!-- Noncompliant --&gt;\n    Given the user is logged in\n    And the user profile page is displayed\n    When the user updates their email address\n    And the user saves the changes\n    When the user changes their password           &lt;!-- Noncompliant --&gt;\n    And the user confirms the new password\n    Then the profile is updated successfully\n    And the password change is confirmed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Split into separate scenarios, each with one When step:</p>\n<pre>\nFeature: User profile management\n\n  Scenario: Update profile email\n    Given the user is logged in\n    And the user profile page is displayed\n    When the user updates their email address\n    And the user saves the changes\n    Then the profile is updated successfully\n\n  Scenario: Change password\n    Given the user is logged in\n    And the user profile page is displayed\n    When the user changes their password\n    And the user confirms the new password\n    Then the password change is confirmed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>when-then-required</code> &mdash; Scenarios should have at least one When and one Then step</li>\n  <li><code>step-order-given-when-then</code> &mdash; Steps must follow Given/When/Then order</li>\n</ul>"
+      }
+    },
+    {
+      "key": "spelling-accuracy",
+      "name": "Spelling Accuracy",
+      "severity": "INFO",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/spelling-accuracy.md",
+      "sections": {
+        "root_cause": "<p>\n  Feature files should be free of spelling mistakes. Misspelled words in\n  feature and scenario names, step text, and descriptions reduce readability\n  and can make it harder to search for or understand test intent.\n</p>\n\n<p>\n  This rule uses LanguageTool (English, en-US) to check spelling only.\n  Grammar and style rules are disabled. Add product names, technical terms,\n  and domain vocabulary to the <strong>wordsToIgnore</strong> parameter\n  (comma-separated) to avoid false positives.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User autentication                              &lt;!-- typo: \"autentication\" --&gt;\n\n  Scenario: Login with valid credntials                  &lt;!-- typo: \"credntials\" --&gt;\n    Given the user has a registred account               &lt;!-- typo: \"registred\" --&gt;\n    When the user logs in with valid credentials\n    Then the user is authentcated                         &lt;!-- typo: \"authentcated\" --&gt;\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: User authentication\n\n  Scenario: Login with valid credentials\n    Given the user has a registered account\n    When the user logs in with valid credentials\n    Then the user is authenticated\n</pre>\n\n<h2>Parameters</h2>\n<table>\n  <tr><th>Parameter</th><th>Description</th><th>Default</th></tr>\n  <tr>\n    <td><code>wordsToIgnore</code></td>\n    <td>Comma-separated list of words to exclude from spell checking (e.g. product names, technical terms, acronyms). Use this to reduce false positives for valid domain vocabulary.</td>\n    <td><code>(empty)</code></td>\n  </tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>business-language-only</code> - keeps step text in business rather than technical language.</li>\n  <li><code>consistent-feature-language</code> - requires one spoken language per feature.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "step-count-limit",
+      "name": "Step Count Limit",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/step-count-limit.md",
+      "sections": {
+        "root_cause": "<p>\n  Scenarios should not exceed a configurable number of steps. A scenario\n  with too many steps is usually testing multiple behaviours at once and\n  is difficult to read, maintain, and debug when it fails. Long scenarios\n  should be split into multiple focused scenarios, each testing a single\n  business outcome.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With the default limit of 12 steps:</p>\n<pre>\nFeature: Loan application\n\n  Scenario: Complete loan application process    &lt;!-- Noncompliant --&gt;\n    Given the applicant has a verified identity\n    And the applicant has a credit score above 700\n    And the applicant has a stable income\n    When the applicant selects a loan amount of $50000\n    And the applicant chooses a 5-year term\n    And the applicant provides employment details\n    And the applicant provides residential address\n    And the applicant uploads supporting documents\n    And the applicant reviews the loan summary\n    And the applicant accepts the terms and conditions\n    Then the application is submitted for review\n    And the applicant receives a confirmation number\n    And the applicant receives an email notification\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Split into focused scenarios:</p>\n<pre>\nFeature: Loan application\n\n  Scenario: Submit loan application\n    Given the applicant has a verified identity\n    And the applicant has a credit score above 700\n    When the applicant submits a loan application for $50000 over 5 years\n    Then the application is submitted for review\n    And the applicant receives a confirmation number\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>maxSteps</code> parameter controls the maximum number of\n  steps allowed per Scenario. The default value is <strong>12</strong>.\n</p>\n<table>\n  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>\n  <tr><td><code>maxSteps</code></td><td>int</td><td>12</td></tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>background-step-count-limit</code> - applies the same limit to Background.</li>\n  <li><code>scenario-count-limit</code> - limits the number of scenarios in a feature.</li>\n  <li><code>single-when-per-scenario</code> - a scenario testing one action needs fewer steps.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "step-order-given-when-then",
+      "name": "Step Order Given-When-Then",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/step-order-given-when-then.md",
+      "sections": {
+        "root_cause": "<p>\n  Steps within a scenario must follow the Given-When-Then order. This pattern\n  ensures scenarios are structured logically: <code>Given</code> establishes\n  preconditions, <code>When</code> describes the action being tested, and\n  <code>Then</code> verifies the expected outcome. Violating this order makes\n  scenarios harder to read and understand, as it breaks the narrative flow\n  of the test.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Payment processing\n\n  Scenario: Process credit card payment\n    Given the customer has items in the cart\n    When the customer proceeds to checkout\n    Then the payment form is displayed\n    Given the customer enters valid card details    &lt;!-- Noncompliant --&gt;\n    When the customer submits the payment\n    Then the payment is processed successfully\n    When the order confirmation is generated         &lt;!-- Noncompliant --&gt;\n    Then the customer receives an email receipt\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Reorganize steps to follow Given-When-Then order:</p>\n<pre>\nFeature: Payment processing\n\n  Scenario: Process credit card payment\n    Given the customer has items in the cart\n    And the customer proceeds to checkout\n    And the payment form is displayed\n    And the customer enters valid card details\n    When the customer submits the payment\n    Then the payment is processed successfully\n    And the order confirmation is generated\n    And the customer receives an email receipt\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>when-then-required</code> &mdash; Scenarios should have at least one When and one Then step</li>\n  <li><code>single-when-per-scenario</code> &mdash; Each scenario should contain exactly one When step</li>\n</ul>"
+      }
+    },
+    {
+      "key": "step-required",
+      "name": "Step Required",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/step-required.md",
+      "sections": {
+        "root_cause": "<p>\n  Every <code>Scenario</code>, <code>Scenario Outline</code>, and\n  <code>Background</code> must contain at least one step. A scenario\n  without steps provides no test behaviour and a background without steps\n  provides no shared setup. These are indicators of incomplete specifications\n  that should be finished or removed.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Customer loyalty program\n\n  Scenario: Customer earns loyalty points       &lt;!-- Noncompliant --&gt;\n\n  Scenario: Customer redeems loyalty points\n    Given the customer has 500 loyalty points\n    When the customer redeems 200 points at checkout\n    Then the order total is reduced by $20\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Add steps to the empty scenario:</p>\n<pre>\nFeature: Customer loyalty program\n\n  Scenario: Customer earns loyalty points\n    Given the customer is enrolled in the loyalty program\n    When the customer completes a purchase of $100\n    Then the customer earns 100 loyalty points\n\n  Scenario: Customer redeems loyalty points\n    Given the customer has 500 loyalty points\n    When the customer redeems 200 points at checkout\n    Then the order total is reduced by $20\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>scenario-required</code> &mdash; Features must contain at least one Scenario</li>\n</ul>"
+      }
+    },
+    {
+      "key": "step-sentence-max-length",
+      "name": "Step Sentence Max Length",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/step-sentence-max-length.md",
+      "sections": {
+        "root_cause": "<p>\n  Step sentences should not exceed a configurable maximum length. Extremely\n  long step sentences reduce readability and often indicate that the step is\n  trying to express too much in a single statement. Breaking long steps into\n  shorter, more focused steps improves clarity and makes the feature file\n  easier to maintain.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With the default limit of 100 characters:</p>\n<pre>\nFeature: Subscription management\n\n  Scenario: Customer upgrades with add-ons\n    Given the customer has an active basic subscription\n    When the customer navigates to the special promotions page and adds the premium yearly\n         subscription plan with all optional add-ons and extended warranty coverage to their\n         shopping cart                                &lt;!-- Noncompliant; step text exceeds 100 chars --&gt;\n    Then the upgrade is applied\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Subscription management\n\n  Scenario: Customer upgrades with add-ons\n    Given the customer has an active basic subscription\n    When the customer selects the premium yearly plan\n    And the customer adds all optional add-ons\n    Then the upgrade is applied\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>maxLength</code> parameter controls the maximum allowed number\n  of characters in the step sentence text (excluding the keyword). The\n  default value is <strong>100</strong>.\n</p>\n<table>\n  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>\n  <tr><td><code>maxLength</code></td><td>int</td><td>100</td></tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>max-line-length</code> - limits the length of any line.</li>\n  <li><code>name-max-length</code> - limits the length of element names.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "tag-name-pattern",
+      "name": "Tag Name Pattern",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/tag-name-pattern.md",
+      "sections": {
+        "root_cause": "<p>\n  Tag names should follow a consistent naming convention. By default, tag names\n  must start with a lowercase letter and contain only lowercase letters, digits,\n  and hyphens. A consistent naming convention makes tags easier to read, avoids\n  confusion, and improves maintainability across large test suites.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>Tag names that violate the default pattern:</p>\n<pre>\n@SmokeTest              &lt;!-- Noncompliant; starts with uppercase --&gt;\n@regression_test        &lt;!-- Noncompliant; contains underscore --&gt;\n@123-priority           &lt;!-- Noncompliant; starts with digit --&gt;\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\n@smoke\n@regression\n@priority-high\n@payment-processing\n@api-test\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>pattern</code> parameter is a regular expression that tag names\n  must match. The default pattern is <code>^[a-z][-a-z0-9]*$</code>.\n</p>\n<table>\n  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>\n  <tr>\n    <td><code>pattern</code></td>\n    <td>String (regex)</td>\n    <td><code>^[a-z][-a-z0-9]*$</code></td>\n  </tr>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>tag-permitted-values</code> - restricts tags to a permitted set.</li>\n  <li><code>no-restricted-tags</code> - forbids specific tags outright.</li>\n  <li><code>required-tags</code> - requires a tag from a configured set.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "tag-permitted-values",
+      "name": "Tag Permitted Values",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/tag-permitted-values.md",
+      "sections": {
+        "root_cause": "<p>\n  Tag names should match a permitted pattern or set of values. By default, any\n  tag name is allowed (pattern <code>.*</code>). Configure the pattern to\n  restrict tags to specific values or naming conventions, ensuring consistency\n  and preventing typos or unauthorized tags.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>Tag names that do not match a configured pattern (e.g., <code>smoke|regression|api</code>):</p>\n<pre>\n@smoke\n@regression\n@unauthorized-tag     &lt;!-- Noncompliant; not in permitted list --&gt;\n@api\n@typo-tag             &lt;!-- Noncompliant; not in permitted list --&gt;\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Tag names that match the permitted pattern:</p>\n<pre>\n@smoke\n@regression\n@api\n@integration\n</pre>\n\n<h2>Configuration</h2>\n<p>\n  The <code>pattern</code> parameter is a regular expression that tag names\n  must match. The default pattern is <code>.*</code> (allows any tag).\n</p>\n<table>\n  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>\n  <tr>\n    <td><code>pattern</code></td>\n    <td>String (regex)</td>\n    <td><code>.*</code></td>\n  </tr>\n</table>\n<p>\n  Example: Set <code>pattern</code> to <code>smoke|regression|api|integration</code>\n  to only allow these specific tag values.\n</p>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>tag-name-pattern</code> - constrains the shape of a tag name.</li>\n  <li><code>no-restricted-tags</code> - forbids specific tags outright.</li>\n  <li><code>required-tags</code> - requires a tag from a configured set.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "tag-placement",
+      "name": "Tag Placement",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "2min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/tag-placement.md",
+      "sections": {
+        "root_cause": "<p>\n  Tags that are common to all scenarios within a Feature should be placed at the\n  Feature level instead of being repeated on each scenario. This reduces\n  duplication, improves maintainability, and makes it clear which tags apply to\n  the entire Feature scope.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>Tags repeated on every scenario that should be at the Feature level:</p>\n<pre>\nFeature: Payment processing\n\n  @smoke @regression     &lt;!-- Noncompliant: repeated on every scenario; move to Feature level --&gt;\n  Scenario: Process credit card payment\n    Given the customer has items in cart\n    When the customer completes checkout\n    Then payment is processed\n\n  @smoke @regression\n  Scenario: Process PayPal payment\n    Given the customer has items in cart\n    When the customer selects PayPal\n    Then payment is processed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Common tags moved to the Feature level:</p>\n<pre>\n@smoke @regression\nFeature: Payment processing\n\n  Scenario: Process credit card payment\n    Given the customer has items in cart\n    When the customer completes checkout\n    Then payment is processed\n\n  Scenario: Process PayPal payment\n    Given the customer has items in cart\n    When the customer selects PayPal\n    Then payment is processed\n</pre>\n\n<p>\n  Note: If a tag appears on most but not all scenarios, it should remain at the\n  scenario level. Only tags that appear on <strong>every</strong> scenario within\n  the Feature should be promoted. Rule-level tag promotion is handled by the\n  companion rule <code>rule-tag-placement</code>.\n</p>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>rule-tag-placement</code> - suggests moving common tags to the Rule level</li>\n</ul>"
+      }
+    },
+    {
+      "key": "then-step-pattern",
+      "name": "Then Step Pattern",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/then-step-pattern.md",
+      "sections": {
+        "root_cause": "<p>\n  <code>Then</code> steps should match the configured regular-expression\n  pattern. This rule lets teams enforce naming conventions on outcome steps\n  &mdash; for example, requiring them to start with a noun phrase\n  such as &ldquo;the&rdquo; or &ldquo;a&rdquo;.\n  <code>And</code>/<code>But</code> steps continuing a <code>Then</code>\n  are checked as well. If the configured pattern is not a valid regular\n  expression, a file-level issue is raised instead of failing the analysis.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With the pattern <code>^the .*</code>:</p>\n<pre>\nFeature: Account management\n\n  Scenario: Deactivate an account\n    Given the user has an active account\n    When the account is deactivated\n    Then account status is inactive                   &lt;!-- Noncompliant --&gt;\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Account management\n\n  Scenario: Deactivate an account\n    Given the user has an active account\n    When the account is deactivated\n    Then the account status is inactive\n</pre>\n\n<h2>Parameters</h2>\n<table>\n  <thead><tr><th>Name</th><th>Default</th><th>Description</th></tr></thead>\n  <tbody>\n    <tr>\n      <td><code>pattern</code></td>\n      <td><code>.*</code></td>\n      <td>Regular expression that Then step text must match.</td>\n    </tr>\n  </tbody>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>given-step-pattern</code> - applies the same constraint to precondition steps.</li>\n  <li><code>when-step-pattern</code> - applies the same constraint to action steps.</li>\n  <li><code>when-then-required</code> - requires both an action and an outcome.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "todo-comment",
+      "name": "TODO Comment",
+      "severity": "INFO",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/todo-comment.md",
+      "sections": {
+        "root_cause": "<p>\n  Comments containing <code>TODO</code> markers should be resolved and\n  removed. TODO comments indicate unfinished work or pending decisions\n  that are better tracked in an issue tracker. Leaving them in feature\n  files risks them being overlooked as the test suite grows.\n</p>\n\n<p>\n  Matching is case-insensitive and recognises the marker as a whole word\n  with an optional single space, hyphen or underscore separator:\n  <code>TODO</code>, <code>to-do</code>, <code>to_do</code> and\n  <code>to do</code> are all flagged. Words that merely contain the\n  letters (e.g. <em>todos</em>, <em>things to document</em>) are not.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Payment processing\n\n  Scenario: Process a credit card payment\n    Given the customer has items in the cart\n    # TODO: implement this step                        &lt;!-- Noncompliant --&gt;\n    When the customer pays by credit card\n    Then the payment is processed\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Remove or resolve the TODO comment:</p>\n<pre>\nFeature: Payment processing\n\n  Scenario: Process a credit card payment\n    Given the customer has items in the cart\n    When the customer pays by credit card\n    Then the payment is processed\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>fixme-comment</code> - flags FIXME markers left in the file.</li>\n  <li><code>comment-pattern-match</code> - flags comments matching any configured pattern.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "unique-examples-headers",
+      "name": "Unique Examples Headers",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/unique-examples-headers.md",
+      "sections": {
+        "root_cause": "<p>\n  Column names in an Examples table must be unique. Duplicate column headers\n  create ambiguous variable substitution - the test framework cannot determine\n  which column to use when a step references a placeholder that matches\n  multiple headers. This is always a defect that will cause incorrect or\n  unpredictable test behaviour.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: User registration\n\n  Scenario Outline: Register a new user\n    Given the user enters \"&lt;username&gt;\" in the name field\n    And the user enters \"&lt;username&gt;\" in the confirmation field\n    Then the registration should succeed\n\n    Examples:                                &lt;!-- Noncompliant --&gt;\n      | username | email             | username |\n      | alice    | alice@example.com | alice    |\n      | bob      | bob@example.com   | bob      |\n</pre>\n<p>\n  The header <code>username</code> appears twice. The test runner cannot\n  determine which column to use for <code>&lt;username&gt;</code>\n  substitution.\n</p>\n\n<h2>Exceptions</h2>\n<p>\n  This rule does not apply to plain Scenarios (without Examples tables).\n  Empty Examples sections with no rows are also ignored.\n</p>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Give each column a unique, descriptive name:</p>\n<pre>\nFeature: User registration\n\n  Scenario Outline: Register a new user\n    Given the user enters \"&lt;username&gt;\" in the name field\n    And the user enters \"&lt;confirmation&gt;\" in the confirmation field\n    Then the registration should succeed\n\n    Examples:\n      | username | email             | confirmation |\n      | alice    | alice@example.com | alice        |\n      | bob      | bob@example.com   | bob          |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>examples-column-coverage</code> - requires every column to be used by the outline.</li>\n  <li><code>no-empty-examples-cells</code> - requires every cell to carry a value.</li>\n  <li><code>outline-placeholder-required</code> - requires the outline to reference its columns.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "unique-feature-name",
+      "name": "Unique Feature Name",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/unique-feature-name.md",
+      "sections": {
+        "root_cause": "<p>\n  <code>Feature</code> names must be unique across all <code>.feature</code>\n  files in the project. Duplicate Feature names create ambiguity in test\n  reports and make it impossible to distinguish which file a particular\n  test result originates from. Each Feature should have a distinct,\n  descriptive name that clearly identifies its business domain.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>In <code>login.feature</code>:</p>\n<pre>\nFeature: User authentication\n  Scenario: Login with valid credentials\n    ...\n</pre>\n<p>In <code>sso.feature</code>:</p>\n<pre>\nFeature: User authentication                    &lt;!-- Noncompliant: duplicate name --&gt;\n  Scenario: Login via SSO provider\n    ...\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Give each Feature a unique name:</p>\n<pre>\nFeature: Password-based authentication\n  ...\n\nFeature: Single sign-on authentication\n  ...\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>feature-name-required</code> &mdash; Features must have a non-empty name</li>\n  <li><code>unique-scenario-name</code> &mdash; Scenario names must also be unique</li>\n</ul>"
+      }
+    },
+    {
+      "key": "unique-rule-name",
+      "name": "Unique Rule Name",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention",
+        "design"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/unique-rule-name.md",
+      "sections": {
+        "root_cause": "<p>\n  <code>Rule</code> names within a single <code>Feature</code> must be unique.\n  Duplicate Rule names indicate copy-paste errors or poor feature decomposition.\n  When multiple Rules share the same name, test reports become ambiguous and it\n  is impossible to determine which business rule a test result belongs to.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Order Management\n\n  Rule: Order validation\n    Scenario: Validate order total\n      Given an order with 3 items\n      When the order total is calculated\n      Then the total should be correct\n\n  Rule: Order validation                          &lt;!-- Noncompliant --&gt;\n    Scenario: Validate shipping address\n      Given an order with a shipping address\n      When the address is validated\n      Then the address should be accepted\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Give each Rule a unique, descriptive name:</p>\n<pre>\nFeature: Order Management\n\n  Rule: Order total validation\n    Scenario: Validate order total\n      Given an order with 3 items\n      When the order total is calculated\n      Then the total should be correct\n\n  Rule: Shipping address validation\n    Scenario: Validate shipping address\n      Given an order with a shipping address\n      When the address is validated\n      Then the address should be accepted\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>rule-name-required</code> &mdash; Rule blocks must have a name</li>\n  <li><code>unique-feature-name</code> &mdash; Similar check for Feature names across files</li>\n  <li><code>unique-scenario-name</code> &mdash; Similar check for Scenario names</li>\n</ul>"
+      }
+    },
+    {
+      "key": "unique-scenario-name",
+      "name": "Unique Scenario Name",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "5min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/unique-scenario-name.md",
+      "sections": {
+        "root_cause": "<p>\n  Scenario names must be unique within and across all features. Duplicate\n  scenario names make it difficult to identify which specific test failed\n  in test reports and can lead to confusion when discussing test results\n  with team members. Each scenario should have a distinct name that clearly\n  describes the specific business behaviour being tested.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Order processing\n\n  Scenario: Process order                      &lt;!-- Noncompliant --&gt;\n    Given the customer has items in the cart\n    When the customer completes checkout\n    Then the order is created\n\n  Scenario: Process order                      &lt;!-- Noncompliant: duplicate name --&gt;\n    Given the customer has a saved order\n    When the customer confirms the order\n    Then the order is processed\n\nFeature: Order cancellation\n\n  Scenario: Process order                      &lt;!-- Noncompliant: duplicate across features --&gt;\n    Given an order exists\n    When the order is cancelled\n    Then the order status is \"Cancelled\"\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Use unique, descriptive scenario names:</p>\n<pre>\nFeature: Order processing\n\n  Scenario: Create new order from cart\n    Given the customer has items in the cart\n    When the customer completes checkout\n    Then the order is created\n\n  Scenario: Confirm saved order\n    Given the customer has a saved order\n    When the customer confirms the order\n    Then the order is processed\n\nFeature: Order cancellation\n\n  Scenario: Cancel existing order\n    Given an order exists\n    When the order is cancelled\n    Then the order status is \"Cancelled\"\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>unique-feature-name</code> &mdash; Feature names must be unique across all files</li>\n  <li><code>scenario-name-required</code> &mdash; Scenarios must have a non-empty name</li>\n</ul>"
+      }
+    },
+    {
+      "key": "use-scenario-outline-for-examples",
+      "name": "Use Scenario Outline for Examples",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/use-scenario-outline-for-examples.md",
+      "sections": {
+        "root_cause": "<p>\n  Examples tables belong with <code>Scenario Outline</code>, not with plain\n  <code>Scenario</code>. Per the Gherkin specification, only Scenario Outline\n  is designed to run the same steps multiple times with data from an Examples\n  table. Using Examples under a regular Scenario is invalid or unsupported\n  usage: many parsers accept it without error, but the Examples may be\n  ignored at runtime or lead to unexpected test behaviour. Use\n  <code>Scenario Outline</code> with <code>&lt;placeholder&gt;</code> parameters\n  in the steps when you need parameterised data.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Product pricing\n\n  Scenario: Calculate product price with discount    &lt;!-- Noncompliant --&gt;\n    Given the product \"Widget\" has a base price of $100\n    When a discount of 10% is applied\n    Then the final price is $90\n\n    Examples:\n      | Product  | Base Price | Discount | Final Price |\n      | Widget   | 100        | 10       | 90          |\n      | Gadget   | 200        | 15       | 170         |\n      | Tool     | 50         | 5        | 47.50       |\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Use Scenario Outline instead of Scenario when using Examples:</p>\n<pre>\nFeature: Product pricing\n\n  Scenario Outline: Calculate product price with discount\n    Given the product \"&lt;Product&gt;\" has a base price of $&lt;Base Price&gt;\n    When a discount of &lt;Discount&gt;% is applied\n    Then the final price is $&lt;Final Price&gt;\n\n    Examples:\n      | Product | Base Price | Discount | Final Price |\n      | Widget  | 100        | 10       | 90          |\n      | Gadget  | 200        | 15       | 170         |\n      | Tool    | 50         | 5        | 47.50       |\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>examples-minimum-rows</code> &mdash; Examples tables should have a minimum number of rows</li>\n  <li><code>examples-column-coverage</code> &mdash; Examples tables should cover all placeholders</li>\n</ul>"
+      }
+    },
+    {
+      "key": "when-step-pattern",
+      "name": "When Step Pattern",
+      "severity": "MINOR",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "convention"
+      ],
+      "remediation": "5min",
+      "defaultActive": false,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/when-step-pattern.md",
+      "sections": {
+        "root_cause": "<p>\n  <code>When</code> steps should match the configured regular-expression\n  pattern. This rule lets teams enforce naming conventions on action steps\n  &mdash; for example, requiring them to start with a noun phrase\n  such as &ldquo;the&rdquo; or &ldquo;a&rdquo;.\n  <code>And</code>/<code>But</code> steps continuing a <code>When</code>\n  are checked as well. If the configured pattern is not a valid regular\n  expression, a file-level issue is raised instead of failing the analysis.\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<p>With the pattern <code>^the .*</code>:</p>\n<pre>\nFeature: Account management\n\n  Scenario: Deactivate an account\n    Given the user has an active account\n    When account is deactivated                       &lt;!-- Noncompliant --&gt;\n    Then the account status is inactive\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<pre>\nFeature: Account management\n\n  Scenario: Deactivate an account\n    Given the user has an active account\n    When the account is deactivated\n    Then the account status is inactive\n</pre>\n\n<h2>Parameters</h2>\n<table>\n  <thead><tr><th>Name</th><th>Default</th><th>Description</th></tr></thead>\n  <tbody>\n    <tr>\n      <td><code>pattern</code></td>\n      <td><code>.*</code></td>\n      <td>Regular expression that When step text must match.</td>\n    </tr>\n  </tbody>\n</table>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>given-step-pattern</code> - applies the same constraint to precondition steps.</li>\n  <li><code>then-step-pattern</code> - applies the same constraint to outcome steps.</li>\n  <li><code>single-when-per-scenario</code> - limits a scenario to one action.</li>\n</ul>"
+      }
+    },
+    {
+      "key": "when-then-required",
+      "name": "When and Then Required",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "tags": [
+        "gherkin",
+        "design"
+      ],
+      "remediation": "10min",
+      "defaultActive": true,
+      "helpUrl": "https://github.com/Qualimetry/sonarqube-gherkin-plugin/blob/main/docs/rules/when-then-required.md",
+      "sections": {
+        "root_cause": "<p>\n  Every <code>Scenario</code> should contain at least one <code>When</code>\n  step and one <code>Then</code> step. The <code>When</code> step describes\n  the action being tested, and the <code>Then</code> step describes the\n  expected outcome. Without both, the scenario is incomplete and does not\n  provide meaningful test coverage.\n</p>\n<p>\n  <code>And</code> and <code>But</code> steps count as the same kind of step\n  as the last <code>Given</code>, <code>When</code>, or <code>Then</code>\n  before them. Only the scenario's own steps are considered:\n  <code>Background</code> steps do not count toward the When/Then\n  requirement, as Backgrounds should contain only <code>Given</code> steps\n  (see <code>background-given-only</code>).\n</p>\n\n<h2>Noncompliant Code Example</h2>\n<pre>\nFeature: Account management\n\n  Scenario: View account details               &lt;!-- Noncompliant: no When --&gt;\n    Given the customer is logged in\n    Then the account details are displayed\n\n  Scenario: Update account information          &lt;!-- Noncompliant: no Then --&gt;\n    Given the customer is logged in\n    When the customer updates their email address\n</pre>",
+        "how_to_fix": "<h2>Compliant Solution</h2>\n<p>Add the missing steps to complete the scenario:</p>\n<pre>\nFeature: Account management\n\n  Scenario: View account details\n    Given the customer is logged in\n    When the customer navigates to account settings\n    Then the account details are displayed\n\n  Scenario: Update account information\n    Given the customer is logged in\n    When the customer updates their email address\n    Then the email address is changed successfully\n</pre>",
+        "resources": "<h2>See Also</h2>\n<ul>\n  <li><code>step-required</code> &mdash; Scenarios must contain at least one step</li>\n  <li><code>step-order-given-when-then</code> &mdash; Steps must follow Given/When/Then order</li>\n</ul>"
+      }
+    }
+  ]
+}

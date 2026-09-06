@@ -1,0 +1,20 @@
+<h2>Compliant Solution</h2>
+<p>All lines use the same line ending style (<code>LF</code> by default):</p>
+<pre>
+Feature: Subscription management(LF)
+(LF)
+  Scenario: Customer upgrades subscription(LF)
+    Given the customer has a basic plan(LF)
+    When the customer selects the premium plan(LF)
+    Then the subscription is upgraded(LF)
+</pre>
+
+<h2>Configuration</h2>
+<p>
+  The <code>lineEnding</code> parameter controls the expected line ending type.
+  The default value is <strong>LF</strong>.
+</p>
+<table>
+  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>
+  <tr><td><code>lineEnding</code></td><td>String</td><td>LF</td></tr>
+</table>

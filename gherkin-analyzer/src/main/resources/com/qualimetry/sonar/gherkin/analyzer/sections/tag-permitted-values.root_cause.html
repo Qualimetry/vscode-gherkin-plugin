@@ -1,0 +1,16 @@
+<p>
+  Tag names should match a permitted pattern or set of values. By default, any
+  tag name is allowed (pattern <code>.*</code>). Configure the pattern to
+  restrict tags to specific values or naming conventions, ensuring consistency
+  and preventing typos or unauthorized tags.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<p>Tag names that do not match a configured pattern (e.g., <code>smoke|regression|api</code>):</p>
+<pre>
+@smoke
+@regression
+@unauthorized-tag     &lt;!-- Noncompliant; not in permitted list --&gt;
+@api
+@typo-tag             &lt;!-- Noncompliant; not in permitted list --&gt;
+</pre>

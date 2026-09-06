@@ -1,0 +1,29 @@
+<h2>Compliant Solution</h2>
+<p>Split the feature file into smaller, focused files:</p>
+<pre>
+# order-placement.feature (120 lines)
+Feature: Order placement
+  ...
+
+# order-cancellation.feature (95 lines)
+Feature: Order cancellation
+  ...
+
+# order-tracking.feature (80 lines)
+Feature: Order tracking
+  ...
+</pre>
+
+<h2>Configuration</h2>
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>Description</th>
+    <th>Default</th>
+  </tr>
+  <tr>
+    <td><code>maxLines</code></td>
+    <td>Maximum number of lines allowed in a single feature file.</td>
+    <td><code>300</code></td>
+  </tr>
+</table>

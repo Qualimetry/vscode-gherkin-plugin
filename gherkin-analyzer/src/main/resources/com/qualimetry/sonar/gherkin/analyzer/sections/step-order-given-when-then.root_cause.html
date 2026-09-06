@@ -1,0 +1,23 @@
+<p>
+  Steps within a scenario must follow the Given-When-Then order. This pattern
+  ensures scenarios are structured logically: <code>Given</code> establishes
+  preconditions, <code>When</code> describes the action being tested, and
+  <code>Then</code> verifies the expected outcome. Violating this order makes
+  scenarios harder to read and understand, as it breaks the narrative flow
+  of the test.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<pre>
+Feature: Payment processing
+
+  Scenario: Process credit card payment
+    Given the customer has items in the cart
+    When the customer proceeds to checkout
+    Then the payment form is displayed
+    Given the customer enters valid card details    &lt;!-- Noncompliant --&gt;
+    When the customer submits the payment
+    Then the payment is processed successfully
+    When the order confirmation is generated         &lt;!-- Noncompliant --&gt;
+    Then the customer receives an email receipt
+</pre>

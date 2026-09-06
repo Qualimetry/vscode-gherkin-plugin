@@ -1,0 +1,19 @@
+<h2>Compliant Solution</h2>
+<pre>
+Feature: User authentication
+
+  Scenario: Login with valid credentials
+    Given the user has a registered account
+    When the user logs in with valid credentials
+    Then the user is authenticated
+</pre>
+
+<h2>Parameters</h2>
+<table>
+  <tr><th>Parameter</th><th>Description</th><th>Default</th></tr>
+  <tr>
+    <td><code>wordsToIgnore</code></td>
+    <td>Comma-separated list of words to exclude from spell checking (e.g. product names, technical terms, acronyms). Use this to reduce false positives for valid domain vocabulary.</td>
+    <td><code>(empty)</code></td>
+  </tr>
+</table>

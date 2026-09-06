@@ -1,0 +1,21 @@
+<h2>Compliant Solution</h2>
+<pre>
+@smoke @regression
+Feature: User login
+
+  @critical
+  Scenario: Successful login
+    Given a valid user
+    When they enter credentials
+    Then they are logged in
+
+  Scenario Outline: Login with various roles
+    Given a user with role "&lt;role&gt;"
+    When they log in
+    Then they see "&lt;page&gt;"
+
+    @fast
+    Examples: Roles
+      | role  | page      |
+      | admin | dashboard |
+</pre>

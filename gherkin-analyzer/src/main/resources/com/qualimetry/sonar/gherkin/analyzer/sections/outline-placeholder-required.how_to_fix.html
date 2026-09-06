@@ -1,0 +1,14 @@
+<h2>Compliant Solution</h2>
+<pre>
+Feature: User login
+
+  Scenario Outline: Successful login for &lt;username&gt;
+    Given a registered user named &lt;username&gt;
+    When the user logs in with password &lt;password&gt;
+    Then the user sees the dashboard
+
+    Examples:
+      | username | password |
+      | alice    | secret1  |
+      | bob      | secret2  |
+</pre>

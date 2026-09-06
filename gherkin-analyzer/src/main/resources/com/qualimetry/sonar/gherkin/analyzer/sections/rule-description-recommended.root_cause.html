@@ -1,0 +1,18 @@
+<p>
+  <code>Rule</code> blocks should include a description explaining the business
+  rule they represent. The <code>Rule</code> keyword was introduced in Gherkin 6
+  specifically to group scenarios under business rules. A description below the
+  Rule name provides valuable context about acceptance criteria and business
+  intent, helping stakeholders understand why the rule exists.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<pre>
+Feature: Loyalty Program
+
+  Rule: Points accumulation                       &lt;!-- Noncompliant --&gt;
+    Scenario: Earn points on purchase
+      Given a loyalty member
+      When they make a purchase of $50
+      Then they earn 50 points
+</pre>

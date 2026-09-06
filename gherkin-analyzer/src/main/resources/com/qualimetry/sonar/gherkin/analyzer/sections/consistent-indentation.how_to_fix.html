@@ -1,0 +1,27 @@
+<h2>Compliant Solution</h2>
+<pre>
+@smoke
+Feature: Account registration
+
+  Scenario: New customer registers an account
+    Given the customer navigates to the registration page
+    When the customer submits valid details
+    Then an account is created
+
+  Rule: Business customers
+
+    Scenario: Business customer registers
+      Given the business customer navigates to registration
+      When the customer submits company details
+      Then a business account is created
+</pre>
+
+<h2>Configuration</h2>
+<p>
+  The <code>indentation</code> parameter controls the number of spaces per
+  indentation level. The default value is <strong>2</strong>.
+</p>
+<table>
+  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>
+  <tr><td><code>indentation</code></td><td>int</td><td>2</td></tr>
+</table>

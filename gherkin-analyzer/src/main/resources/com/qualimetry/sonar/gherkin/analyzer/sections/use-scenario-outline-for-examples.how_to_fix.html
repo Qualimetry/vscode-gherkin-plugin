@@ -1,0 +1,16 @@
+<h2>Compliant Solution</h2>
+<p>Use Scenario Outline instead of Scenario when using Examples:</p>
+<pre>
+Feature: Product pricing
+
+  Scenario Outline: Calculate product price with discount
+    Given the product "&lt;Product&gt;" has a base price of $&lt;Base Price&gt;
+    When a discount of &lt;Discount&gt;% is applied
+    Then the final price is $&lt;Final Price&gt;
+
+    Examples:
+      | Product | Base Price | Discount | Final Price |
+      | Widget  | 100        | 10       | 90          |
+      | Gadget  | 200        | 15       | 170         |
+      | Tool    | 50         | 5        | 47.50       |
+</pre>

@@ -1,0 +1,10 @@
+<h2>Compliant Solution</h2>
+<p>File starts directly with the Feature keyword, no BOM present:</p>
+<pre>
+Feature: Warehouse inventory
+
+  Scenario: Receive new stock
+    Given a shipment of 100 units arrives
+    When the warehouse clerk scans the items
+    Then the inventory count increases by 100
+</pre>

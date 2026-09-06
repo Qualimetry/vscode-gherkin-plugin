@@ -1,0 +1,25 @@
+<h2>Parameters</h2>
+<ul>
+  <li><code>preferredKeyword</code> &mdash; required keyword for scenarios; empty = majority mode (default empty)</li>
+  <li><code>preferredOutlineKeyword</code> &mdash; required keyword for scenario outlines; empty = not checked (default empty)</li>
+</ul>
+
+<h2>Compliant Solution</h2>
+<pre>
+Feature: User management
+
+  Scenario: Create a new user
+    Given an admin user
+    When they create a new account
+    Then the account is active
+
+  Scenario: Delete a user
+    Given an admin user
+    When they delete an account
+    Then the account is removed
+
+  Scenario: Update a user
+    Given an admin user
+    When they update an account
+    Then the changes are saved
+</pre>

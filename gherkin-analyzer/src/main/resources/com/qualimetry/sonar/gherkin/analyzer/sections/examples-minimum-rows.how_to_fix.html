@@ -1,0 +1,20 @@
+<h2>Compliant Solution</h2>
+<p>Provide at least the required number of data rows:</p>
+<pre>
+Feature: Currency conversion
+
+  Scenario Outline: Convert between currencies
+    Given the exchange rate from &lt;source&gt; to &lt;target&gt; is &lt;rate&gt;
+    When the customer converts &lt;amount&gt; &lt;source&gt;
+    Then the result should be &lt;expected&gt; &lt;target&gt;
+
+    Examples:
+      | source | target | rate  | amount | expected |
+      | USD    | EUR    | 0.85  | 100    | 85       |
+      | GBP    | USD    | 1.27  | 50     | 63.50    |
+</pre>
+
+<h2>Parameters</h2>
+<ul>
+  <li><code>minimumDataRows</code> &mdash; minimum number of data rows required per Examples table (default 2)</li>
+</ul>

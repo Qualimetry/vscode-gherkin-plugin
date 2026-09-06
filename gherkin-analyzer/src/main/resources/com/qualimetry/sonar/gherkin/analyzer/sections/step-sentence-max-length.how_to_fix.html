@@ -1,0 +1,21 @@
+<h2>Compliant Solution</h2>
+<pre>
+Feature: Subscription management
+
+  Scenario: Customer upgrades with add-ons
+    Given the customer has an active basic subscription
+    When the customer selects the premium yearly plan
+    And the customer adds all optional add-ons
+    Then the upgrade is applied
+</pre>
+
+<h2>Configuration</h2>
+<p>
+  The <code>maxLength</code> parameter controls the maximum allowed number
+  of characters in the step sentence text (excluding the keyword). The
+  default value is <strong>100</strong>.
+</p>
+<table>
+  <tr><th>Parameter</th><th>Type</th><th>Default</th></tr>
+  <tr><td><code>maxLength</code></td><td>int</td><td>100</td></tr>
+</table>

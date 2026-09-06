@@ -1,0 +1,14 @@
+<h2>Compliant Solution</h2>
+<p>Remove duplicate steps or consolidate them appropriately:</p>
+<pre>
+Feature: Shopping cart management
+
+  Background:
+    Given the customer is logged in
+    And the product catalog is available
+
+  Scenario: Add multiple items
+    When the customer adds "Laptop" to the cart
+    And the customer adds another "Laptop" to the cart
+    Then the cart contains 2 items
+</pre>

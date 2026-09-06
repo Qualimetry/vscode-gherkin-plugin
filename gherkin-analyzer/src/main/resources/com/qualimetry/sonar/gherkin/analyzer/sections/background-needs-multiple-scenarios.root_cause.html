@@ -1,0 +1,28 @@
+<p>
+  A <code>Background</code> section provides common setup steps that run before each scenario
+  in its scope (Feature or Rule). When there is only one scenario in that scope, the
+  <code>Background</code> adds indirection without benefit - the steps should be inlined
+  directly into the single scenario for clarity and maintainability.
+</p>
+<p>
+  This rule checks both Feature-level and Rule-level Backgrounds independently. A Feature-level
+  Background is only flagged when there are no <code>Rule</code> blocks (because the Background
+  may serve scenarios inside Rules). A Rule-level Background is flagged when the Rule contains
+  only one scenario.
+</p>
+<p>
+  This rule does not fire when there are zero scenarios in the scope - that condition is
+  covered by the <code>scenario-required</code> and <code>rule-scenario-required</code> rules.
+</p>
+
+<h2>Noncompliant Code Example</h2>
+<pre>
+Feature: Order processing
+
+  Background:  <!-- Noncompliant - only one scenario in Feature -->
+    Given a customer with an active account
+
+  Scenario: Place an order
+    When the customer adds an item to the cart
+    Then the order is created
+</pre>

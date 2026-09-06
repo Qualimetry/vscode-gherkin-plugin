@@ -1,0 +1,26 @@
+<h2>Compliant Solution</h2>
+<pre>
+Feature: User login
+
+  @smoke
+  Scenario: Successful login
+    Given a registered user
+    When the user logs in with valid credentials
+    Then the user sees the dashboard
+</pre>
+
+<h2>Configuration</h2>
+<table>
+  <thead>
+    <tr><th>Parameter</th><th>Description</th><th>Default</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>pattern</code></td>
+      <td>Regular expression that at least one tag must match (without the leading <code>@</code>).
+          The default <code>.*</code> matches everything, so the rule is effectively inactive
+          unless configured with a meaningful pattern.</td>
+      <td><code>.*</code></td>
+    </tr>
+  </tbody>
+</table>

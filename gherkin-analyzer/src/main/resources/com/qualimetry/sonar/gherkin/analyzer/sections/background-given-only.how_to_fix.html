@@ -1,0 +1,14 @@
+<h2>Compliant Solution</h2>
+<p>Move <code>When</code> and <code>Then</code> steps out of Background:</p>
+<pre>
+Feature: Customer account management
+
+  Background:
+    Given the customer has an active account
+    And the customer is logged into the system
+
+  Scenario: View account balance
+    Given the account balance is $1000
+    When the customer requests the balance
+    Then the balance of $1000 is displayed
+</pre>

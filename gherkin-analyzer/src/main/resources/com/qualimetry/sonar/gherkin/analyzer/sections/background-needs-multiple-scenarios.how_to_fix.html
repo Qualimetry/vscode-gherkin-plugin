@@ -1,0 +1,26 @@
+<h2>Compliant Solution</h2>
+<pre>
+Feature: Order processing
+
+  Scenario: Place an order
+    Given a customer with an active account
+    When the customer adds an item to the cart
+    Then the order is created
+</pre>
+
+<h2>Compliant Solution (multiple scenarios)</h2>
+<pre>
+Feature: Order processing
+
+  Background:
+    Given a customer with an active account
+
+  Scenario: Place an order
+    When the customer adds an item to the cart
+    Then the order is created
+
+  Scenario: Cancel an order
+    Given an existing order
+    When the customer cancels the order
+    Then the order status is cancelled
+</pre>

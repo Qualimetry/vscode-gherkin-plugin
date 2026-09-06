@@ -1,0 +1,14 @@
+<h2>Compliant Solution</h2>
+<pre>
+Feature: Currency conversion
+
+  Scenario Outline: Convert between currencies
+    Given the exchange rate from &lt;from&gt; to &lt;to&gt; is &lt;rate&gt;
+    When the customer converts &lt;amount&gt; &lt;from&gt;
+    Then the result is &lt;expected&gt; &lt;to&gt;
+
+    Examples:
+      | from | to  | rate | amount | expected |
+      | USD  | EUR | 0.85 | 100    | 85       |
+      | GBP  | USD | 1.27 | 200    | 254      |
+</pre>

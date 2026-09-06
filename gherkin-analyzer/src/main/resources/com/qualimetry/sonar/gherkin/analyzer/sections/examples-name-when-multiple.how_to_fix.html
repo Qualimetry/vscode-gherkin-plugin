@@ -1,0 +1,19 @@
+<h2>Compliant Solution</h2>
+<pre>
+Feature: User login
+
+  Scenario Outline: Login with credentials
+    Given a user with username "&lt;username&gt;"
+    When they enter password "&lt;password&gt;"
+    Then they should see "&lt;result&gt;"
+
+    Examples: Valid credentials
+      | username | password  | result  |
+      | admin    | secret123 | Welcome |
+      | user1    | pass456   | Welcome |
+
+    Examples: Invalid credentials
+      | username | password | result         |
+      | admin    | wrong    | Invalid        |
+      | unknown  | any      | User not found |
+</pre>
